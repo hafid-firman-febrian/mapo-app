@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "169082720857",
+    "project_id": "mapo-5681d",
+    "storage_bucket": "mapo-5681d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:169082720857:android:882b1e38fd9f9c9035d748",
+        "android_client_info": {
+          "package_name": "com.example.mapo_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmBTKVOwCl1NaMcHyX6oY28tCzpr4OQL0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
