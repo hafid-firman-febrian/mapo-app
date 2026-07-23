@@ -1,6 +1,6 @@
 import 'package:firebase_ai/firebase_ai.dart';
 
-final recomendationSchema = Schema.object(
+final recommendationSchema = Schema.object(
   properties: {
     'name': Schema.string(description: 'Nama menu, mis. "Soto Ayam'),
     'reason': Schema.string(
@@ -40,7 +40,7 @@ final mapoResponseSchema = Schema.object(
     'message': Schema.string(
       description: 'Kalimat pembuka gaya ngobrol santai bahasa indonesia',
     ),
-    'recomendations': Schema.array(items: recomendationSchema),
+    'recommendations': Schema.array(items: recommendationSchema),
     'follow_up': Schema.object(
       properties: {
         'question': Schema.string(),
@@ -58,5 +58,5 @@ final mapoResponseSchema = Schema.object(
       optionalProperties: ['weather', 'time_of_day', 'based_on_history'],
     ),
   },
-  optionalProperties: ['recomendations', 'follow_up', 'context_used'],
+  optionalProperties: ['recommendations', 'follow_up', 'context_used'],
 );
