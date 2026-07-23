@@ -47,7 +47,7 @@ final mapoResponseSchema = Schema.object(
         'quick_replies': Schema.array(items: Schema.string()),
       },
     ),
-    'context-used': Schema.object(
+    'context_used': Schema.object(
       properties: {
         'weather': Schema.string(),
         'time_of_day': Schema.enumString(
