@@ -95,7 +95,9 @@ class MealHistoryEntry {
 
 Rasio kontras teks putih di atas warna kategori `base` (dihitung dari nilai hex `AppColors`): biru 4.16:1, merah 3.61:1, hijau 2.79:1, brand/kuning 2.03:1. Ambang AA teks normal (16px) adalah 4.5:1 — keempatnya gagal; hijau dan kuning bahkan gagal ambang teks besar-bold (3:1, dipakai judul nama menu).
 
-**Perbaikan:** `RecommendationCard` varian `hero` menambahkan scrim gradient tipis (`Colors.black.withValues(alpha: 0)` → `~0.12` dari atas ke bawah) di belakang blok teks, independen dari warna kategori. Ini overlay warna di dalam kartu, bukan box-shadow di tepi — konsisten dengan prinsip style guide "cukup warna & radius, jangan shadow tebal". Tidak mengubah nilai `AppColors`/`CategoryTone` yang sudah didefinisikan.
+**Perbaikan:** `RecommendationCard` (varian `hero` maupun `row`) menambahkan panel scrim rata `Colors.black.withValues(alpha: 0.35)` di belakang blok teks, independen dari warna kategori. Angka 0.35 dihitung dari kasus terburuk (brand/amber, luminance dasar 0.4682): dengan blending `channel_baru = channel_asli × (1 - 0.35)` lalu dihitung ulang luminance-nya, kontras putih-di-atasnya jadi persis 4.53:1 — baru lolos ambang AA teks normal (4.5:1). Tiga kategori lain (biru, merah, hijau) jauh lebih longgar di angka yang sama (5.5–8:1), jadi satu nilai scrim yang sama aman dipakai di keempat kategori. Ini overlay warna di dalam kartu, bukan box-shadow di tepi — konsisten dengan prinsip style guide "cukup warna & radius, jangan shadow tebal". Tidak mengubah nilai `AppColors`/`CategoryTone` yang sudah didefinisikan.
+
+`MealHistoryTile` (Riwayat) tidak kena isu ini — tile-nya pakai latar halaman putih/`AppColors.page` dengan teks `AppColors.ink`, dan kotak ikon kategori pakai `tone.fill`+`tone.dark` (pasangan yang sudah kontras tinggi, dipakai juga oleh `CategoryBadge`), bukan `tone.base`+putih.
 
 ## 5. Animasi & micro-interaction
 
