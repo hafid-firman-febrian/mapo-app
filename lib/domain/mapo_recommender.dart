@@ -15,8 +15,6 @@ class MapoRecommender {
 
   MapoRecommender(this._weather, this._history)
     : _model = FirebaseAI.googleAI().generativeModel(
-        // [VERIFIKASI] model string terkini
-        // model: 'gemini-flash-latest',
         model: 'gemini-3.5-flash-lite',
         systemInstruction: Content.text(_systemInstruction),
         generationConfig: GenerationConfig(
