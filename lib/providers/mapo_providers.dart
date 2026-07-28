@@ -1,10 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_ai/firebase_ai.dart';
 import '../data/weather_service.dart';
 import '../data/meal_history_service.dart';
 import '../data/location_service.dart';
+import '../domain/mapo_chat.dart';
 import '../domain/mapo_recommender.dart';
+import '../domain/mapo_schema.dart';
 import '../models/mapo_response.dart';
 
 // ── Data layer ────────────────────────────────────────────
@@ -31,10 +34,33 @@ final coordsProvider = FutureProvider<Coords?>((ref) async {
 });
 
 // ── Domain layer ──────────────────────────────────────────
+const _systemInstruction =
+    'Kamu Mapo, asisten yang membantu orang Indonesia memutuskan mau makan '
+    'apa. Bicara santai, ramah, dan singkat. Kalau informasi dari user '
+    'kurang, gunakan response_type "clarify" dengan quick_replies yang '
+    'membantu. Selalu balas sesuai skema JSON.';
+
+final generativeModelProvider = Provider<GenerativeModel>(
+  (ref) => FirebaseAI.googleAI().generativeModel(
+    model: 'gemini-3.5-flash-lite',
+    systemInstruction: Content.text(_systemInstruction),
+    generationConfig: GenerationConfig(
+      responseMimeType: 'application/json',
+      responseSchema: mapoResponseSchema,
+      temperature: 0.7,
+    ),
+  ),
+);
+
+final mapoChatProvider = Provider<MapoChat>(
+  (ref) => FirebaseMapoChat(ref.watch(generativeModelProvider).startChat()),
+);
+
 final recommenderProvider = Provider(
   (ref) => MapoRecommender(
     ref.watch(weatherServiceProvider),
     ref.watch(mealHistoryProvider),
+    ref.watch(mapoChatProvider),
   ),
 );
 

@@ -1,29 +1,18 @@
 import 'dart:convert';
-import 'package:firebase_ai/firebase_ai.dart';
 import 'package:flutter/foundation.dart';
 import '../data/weather_service.dart';
 import '../data/meal_history_service.dart';
 import '../models/mapo_response.dart';
 import '../models/weather_context.dart';
 import '../models/user_prefs.dart';
-import 'mapo_schema.dart';
+import 'mapo_chat.dart';
 
 class MapoRecommender {
   final WeatherService _weather;
   final MealHistoryService _history;
-  final GenerativeModel _model;
+  final MapoChat _chat;
 
-  MapoRecommender(this._weather, this._history)
-    : _model = FirebaseAI.googleAI().generativeModel(
-        model: 'gemini-3.5-flash-lite',
-        systemInstruction: Content.text(_systemInstruction),
-        generationConfig: GenerationConfig(
-          responseMimeType: 'application/json',
-          responseSchema: mapoResponseSchema,
-          temperature: 0.7,
-          // maxOutputTokens: 800,
-        ),
-      );
+  MapoRecommender(this._weather, this._history, this._chat);
 
   Future<MapoResponse> getRecommendation({
     required String userId,
@@ -53,11 +42,7 @@ class MapoRecommender {
       prefs: prefs,
     );
 
-    final response = await _model.generateContent([
-      Content.text('$contextBlock\n\nPesan user: "$userMessage"'),
-    ]);
-
-    final raw = response.text;
+    final raw = await _chat.send('$contextBlock\n\nPesan user: "$userMessage"');
     if (raw == null || raw.isEmpty) {
       throw MapoException('Respons kosong dari model');
     }
@@ -99,10 +84,4 @@ kamu pakai untuk memutuskan.''';
     if (hour < 21) return 'makan_malam';
     return 'ngemil';
   }
-
-  static const _systemInstruction =
-      'Kamu Mapo, asisten yang membantu orang Indonesia memutuskan mau makan '
-      'apa. Bicara santai, ramah, dan singkat. Kalau informasi dari user '
-      'kurang, gunakan response_type "clarify" dengan quick_replies yang '
-      'membantu. Selalu balas sesuai skema JSON.';
 }

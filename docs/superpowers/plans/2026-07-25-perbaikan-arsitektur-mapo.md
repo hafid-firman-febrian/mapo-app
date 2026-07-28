@@ -13,7 +13,7 @@ Perbarui kolom ini setiap kali sebuah task selesai dan sudah diverifikasi.
 | 1 | Analyzer & test harness | ✅ selesai | tidak (kecuali Step 7: cek model id — diverifikasi via docs Firebase AI Logic) |
 | 2 | `WeatherContext` cast `num` | ✅ selesai | tidak |
 | 3 | Pisahkan `LocationService` | 🟡 kode selesai, **Step 12 (verifikasi device) belum** | **ya** — Step 12 |
-| 4 | Seam `MapoChat` | ⬜ belum | tidak |
+| 4 | Seam `MapoChat` | ✅ selesai | tidak |
 | 5 | Multi-turn `ChatSession` | ⬜ belum | **ya** — Step 9 |
 | 6 | Loop tulis `meal_history` | ⬜ belum | **ya** — Step 8 |
 | 7 | Loop tulis `UserPrefs` | ⬜ belum | **ya** — Step 12 |
@@ -534,7 +534,7 @@ Task ini memasukkan satu interface tipis yang juga menjadi tempat `ChatSession` 
   - `final mapoChatProvider = Provider<MapoChat>`
   - `MapoRecommender(WeatherService, MealHistoryService, MapoChat)` — urutan argumen posisional
 
-- [ ] **Step 1: Tulis test yang gagal**
+- [x] **Step 1: Tulis test yang gagal**
 
 Buat `test/domain/mapo_recommender_test.dart`:
 
@@ -704,13 +704,13 @@ void main() {
 
 Catatan: import `cloud_firestore` dipakai secara implisit oleh tipe `WeatherService`/`MealHistoryService`; kalau `flutter analyze` melaporkannya sebagai unused, hapus import itu.
 
-- [ ] **Step 2: Jalankan test untuk memastikan gagal**
+- [x] **Step 2: Jalankan test untuk memastikan gagal**
 
 Run: `flutter test test/domain/mapo_recommender_test.dart`
 
 Expected: FAIL — `Target of URI doesn't exist: 'package:mapo_app/domain/mapo_chat.dart'` dan `MapoRecommender` tidak menerima 3 argumen posisional.
 
-- [ ] **Step 3: Buat abstraksi `MapoChat`**
+- [x] **Step 3: Buat abstraksi `MapoChat`**
 
 Buat `lib/domain/mapo_chat.dart`:
 
@@ -740,7 +740,7 @@ class FirebaseMapoChat implements MapoChat {
 }
 ```
 
-- [ ] **Step 4: Terima `MapoChat` di recommender**
+- [x] **Step 4: Terima `MapoChat` di recommender**
 
 Di `lib/domain/mapo_recommender.dart`, ganti import dan bagian atas kelas (baris 1-28) dengan:
 
@@ -774,7 +774,7 @@ Dan hapus baris 60 (`final raw = response.text;`) karena `raw` sekarang sudah te
 
 `_systemInstruction` (baris 103-107) tetap di kelas ini untuk sekarang; Step 5 memindahkannya.
 
-- [ ] **Step 5: Pindahkan konstruksi model ke provider**
+- [x] **Step 5: Pindahkan konstruksi model ke provider**
 
 Pindahkan `_systemInstruction` dari `lib/domain/mapo_recommender.dart` (hapus baris 103-107 dari kelas itu) ke `lib/providers/mapo_providers.dart`.
 
@@ -825,13 +825,13 @@ final recommenderProvider = Provider(
 
 `ChatSession.sendMessage` meneruskan `generationConfig` dari `startChat()` yang default `null`, dan `GenerativeModel.generateContent` melakukan `generationConfig ?? _generationConfig` — jadi `responseSchema` dari model tetap berlaku di mode chat. Tidak perlu mengulang config di `startChat()`.
 
-- [ ] **Step 6: Jalankan test dan analyze**
+- [x] **Step 6: Jalankan test dan analyze**
 
 Run: `flutter test && flutter analyze`
 
 Expected: 5 test baru di `test/domain/mapo_recommender_test.dart` PASS, seluruh test lain tetap PASS, analyze bersih.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add lib/domain/mapo_chat.dart lib/domain/mapo_recommender.dart lib/providers/mapo_providers.dart test/domain/mapo_recommender_test.dart
