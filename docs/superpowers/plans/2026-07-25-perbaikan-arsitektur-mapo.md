@@ -11,7 +11,7 @@ Perbarui kolom ini setiap kali sebuah task selesai dan sudah diverifikasi.
 | # | Task | Status | Butuh device? |
 |---|------|--------|---------------|
 | 1 | Analyzer & test harness | ✅ selesai | tidak (kecuali Step 7: cek model id — diverifikasi via docs Firebase AI Logic) |
-| 2 | `WeatherContext` cast `num` | ⬜ belum | tidak |
+| 2 | `WeatherContext` cast `num` | ✅ selesai | tidak |
 | 3 | Pisahkan `LocationService` | ⬜ belum | **ya** — Step 12 |
 | 4 | Seam `MapoChat` | ⬜ belum | tidak |
 | 5 | Multi-turn `ChatSession` | ⬜ belum | **ya** — Step 9 |
@@ -142,7 +142,7 @@ git commit -m "chore: exclude build/ from analyzer, add test harness, verify mod
 - Consumes: `WeatherContext.unknown()` (sudah ada)
 - Produces: `WeatherContext.fromApi(Map<String, dynamic>)` dan `WeatherContext.fromCache(Map<String, dynamic>)` yang tidak pernah throw dan tidak pernah mengembalikan `null`.
 
-- [ ] **Step 1: Tulis test yang gagal**
+- [x] **Step 1: Tulis test yang gagal**
 
 Tambahkan ke `test/models/weather_context_test.dart`, di dalam `void main() { ... }` setelah test yang sudah ada:
 
@@ -190,13 +190,13 @@ Tambahkan ke `test/models/weather_context_test.dart`, di dalam `void main() { ..
   });
 ```
 
-- [ ] **Step 2: Jalankan test untuk memastikan gagal**
+- [x] **Step 2: Jalankan test untuk memastikan gagal**
 
 Run: `flutter test test/models/weather_context_test.dart`
 
 Expected: FAIL. `fromApi menerima suhu bulat (int) dari API` dan `fromCache menerima suhu bulat dari Firestore` gagal dengan `type 'int' is not a subtype of type 'double' in type cast`. `fromApi tidak throw saat field hilang` gagal dengan `NoSuchMethodError` pada `null`.
 
-- [ ] **Step 3: Tulis implementasi minimal**
+- [x] **Step 3: Tulis implementasi minimal**
 
 Ganti kedua factory di `lib/models/weather_context.dart` (baris 20-33) dengan:
 
@@ -222,13 +222,13 @@ Ganti kedua factory di `lib/models/weather_context.dart` (baris 20-33) dengan:
   }
 ```
 
-- [ ] **Step 4: Jalankan test dan analyze**
+- [x] **Step 4: Jalankan test dan analyze**
 
 Run: `flutter test test/models/weather_context_test.dart && flutter analyze 2>&1 | tail -8`
 
 Expected: 5 test PASS. Warning `invalid_null_aware_operator` di `lib/models/weather_context.dart:23` hilang.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add lib/models/weather_context.dart test/models/weather_context_test.dart
