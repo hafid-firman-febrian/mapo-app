@@ -28,12 +28,14 @@ class MapoRecommender {
   Future<MapoResponse> getRecommendation({
     required String userId,
     required String userMessage,
-    required double lat,
-    required double lng,
+    double? lat,
+    double? lng,
   }) async {
     // Kumpulkan konteks PARALEL — bukan berurutan
     final results = await Future.wait([
-      _weather.getWeather(lat, lng),
+      (lat == null || lng == null)
+          ? Future.value(WeatherContext.unknown())
+          : _weather.getWeather(lat, lng),
       _history.getRecentMeals(userId),
       _history.getPreferences(userId),
     ]);

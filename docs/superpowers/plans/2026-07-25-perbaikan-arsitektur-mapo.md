@@ -12,7 +12,7 @@ Perbarui kolom ini setiap kali sebuah task selesai dan sudah diverifikasi.
 |---|------|--------|---------------|
 | 1 | Analyzer & test harness | ✅ selesai | tidak (kecuali Step 7: cek model id — diverifikasi via docs Firebase AI Logic) |
 | 2 | `WeatherContext` cast `num` | ✅ selesai | tidak |
-| 3 | Pisahkan `LocationService` | ⬜ belum | **ya** — Step 12 |
+| 3 | Pisahkan `LocationService` | 🟡 kode selesai, **Step 12 (verifikasi device) belum** | **ya** — Step 12 |
 | 4 | Seam `MapoChat` | ⬜ belum | tidak |
 | 5 | Multi-turn `ChatSession` | ⬜ belum | **ya** — Step 9 |
 | 6 | Loop tulis `meal_history` | ⬜ belum | **ya** — Step 8 |
@@ -263,7 +263,7 @@ Setelah task ini, koordinat bertipe *nullable* sepanjang jalur: izin lokasi dito
   - `final coordsProvider = FutureProvider<Coords?>` — `null` berarti lokasi tidak tersedia, bukan error
   - `MapoRecommender.getRecommendation({required String userId, required String userMessage, double? lat, double? lng})`
 
-- [ ] **Step 1: Tulis test yang gagal**
+- [x] **Step 1: Tulis test yang gagal**
 
 Buat `test/data/location_service_test.dart`:
 
@@ -290,13 +290,13 @@ void main() {
 
 Catatan: `LocationService.current()` memanggil `Geolocator` yang butuh platform channel, jadi tidak diuji unit di sini — hanya kontrak tipe dan exception-nya. Perilaku sebenarnya diverifikasi manual di Step 8.
 
-- [ ] **Step 2: Jalankan test untuk memastikan gagal**
+- [x] **Step 2: Jalankan test untuk memastikan gagal**
 
 Run: `flutter test test/data/location_service_test.dart`
 
 Expected: FAIL — `Target of URI doesn't exist: 'package:mapo_app/data/location_service.dart'`.
 
-- [ ] **Step 3: Buat `LocationService`**
+- [x] **Step 3: Buat `LocationService`**
 
 Buat `lib/data/location_service.dart`:
 
@@ -338,13 +338,13 @@ class LocationService {
 }
 ```
 
-- [ ] **Step 4: Jalankan test untuk memastikan lulus**
+- [x] **Step 4: Jalankan test untuk memastikan lulus**
 
 Run: `flutter test test/data/location_service_test.dart`
 
 Expected: 2 test PASS.
 
-- [ ] **Step 5: Bersihkan `WeatherService`**
+- [x] **Step 5: Bersihkan `WeatherService`**
 
 Di `lib/data/weather_service.dart`:
 
@@ -371,13 +371,13 @@ Hapus seluruh method `getCurrentPosition()` (baris 47-55) dan `getCurrentCity()`
 
 Hapus juga baris komentar `// [VERIFIKASI] endpoint & struktur respons Weather API` di baris 30 — endpoint dan struktur respons sudah diverifikasi oleh test di Task 2.
 
-- [ ] **Step 6: Buang dependensi `geocoding`**
+- [x] **Step 6: Buang dependensi `geocoding`**
 
 `geocoding` hanya dipakai oleh `getCurrentCity()` yang baru saja dihapus.
 
 Run: `flutter pub remove geocoding`
 
-- [ ] **Step 7: Tambah provider lokasi**
+- [x] **Step 7: Tambah provider lokasi**
 
 Di `lib/providers/mapo_providers.dart`, tambahkan import:
 
@@ -401,7 +401,7 @@ final coordsProvider = FutureProvider<Coords?>((ref) async {
 });
 ```
 
-- [ ] **Step 8: Bikin lat/lng nullable di recommender**
+- [x] **Step 8: Bikin lat/lng nullable di recommender**
 
 Di `lib/domain/mapo_recommender.dart`, ubah signature `getRecommendation` (baris 30-35) dan pengumpulan konteks (baris 37-48):
 
@@ -424,7 +424,7 @@ Di `lib/domain/mapo_recommender.dart`, ubah signature `getRecommendation` (baris
 
 Sisa method (baris 43 ke bawah) tidak berubah.
 
-- [ ] **Step 9: Sambungkan di UI dan hapus kode mati**
+- [x] **Step 9: Sambungkan di UI dan hapus kode mati**
 
 Di `lib/ui/chat_screen.dart`, hapus import `cloud_firestore` (baris 1) dan `weather_service` (baris 4). Ganti isi `_ChatScreenState` bagian atas (baris 16-37) dengan:
 
@@ -471,13 +471,13 @@ Dan di `mapo_providers.dart`, `ChatNotifier.ask` sudah menerima `lat`/`lng` seba
   }) async {
 ```
 
-- [ ] **Step 10: Jalankan analyze dan seluruh test**
+- [x] **Step 10: Jalankan analyze dan seluruh test**
 
 Run: `flutter analyze && flutter test`
 
 Expected: analyze bersih (`No issues found!`). Semua test PASS. Warning `_getLocation isn't referenced`, `BASE_URL isn't lowerCamelCase`, dan dua `desiredAccuracy is deprecated` semuanya hilang.
 
-- [ ] **Step 11: Deklarasikan izin lokasi iOS**
+- [x] **Step 11: Deklarasikan izin lokasi iOS**
 
 `android/app/src/main/AndroidManifest.xml:2-3` sudah punya `ACCESS_FINE_LOCATION` dan `ACCESS_COARSE_LOCATION`, tapi `ios/Runner/Info.plist` **tidak punya entri `NSLocation*` sama sekali**. Tanpa itu, `Geolocator.requestPermission()` di iOS langsung mengembalikan `denied` tanpa pernah memunculkan dialog — Step 12 akan selalu gagal di iOS dan penyebabnya tidak kelihatan dari kode Dart.
 
@@ -504,7 +504,7 @@ Kirim satu pesan. Di log, cari baris `WEATHER:` dari `debugPrint` di `lib/domain
 
 Expected: deskripsi cuaca kota kamu yang sebenarnya (mis. `WEATHER: awan tersebar, 30°C`), **bukan** cuaca Teluk Guinea dan bukan `unknown`. Kalau dialog izin lokasi muncul lalu kamu tolak, app harus tetap membalas dengan `WEATHER: unknown, 0°C` tanpa crash.
 
-- [ ] **Step 13: Commit**
+- [x] **Step 13: Commit**
 
 ```bash
 git add lib/data/location_service.dart lib/data/weather_service.dart lib/providers/mapo_providers.dart lib/ui/chat_screen.dart lib/domain/mapo_recommender.dart test/data/location_service_test.dart ios/Runner/Info.plist pubspec.yaml pubspec.lock

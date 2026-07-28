@@ -1,14 +1,12 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import '../models/weather_context.dart';
 
 class WeatherService {
   final FirebaseFirestore _db;
-  static const BASE_URL = 'https://api.openweathermap.org/data/2.5/weather';
+  static const _baseUrl = 'https://api.openweathermap.org/data/2.5/weather';
   static const _apiKey = String.fromEnvironment('WEATHER_API_KEY');
 
   WeatherService(this._db);
@@ -27,9 +25,8 @@ class WeatherService {
         }
       }
 
-      // [VERIFIKASI] endpoint & struktur respons Weather API
       final uri = Uri.parse(
-        '$BASE_URL?lat=$lat&lon=$lng&appid=$_apiKey&units=metric&lang=id',
+        '$_baseUrl?lat=$lat&lon=$lng&appid=$_apiKey&units=metric&lang=id',
       );
       final res = await http.get(uri).timeout(const Duration(seconds: 20));
       if (res.statusCode != 200) return WeatherContext.unknown();
@@ -42,41 +39,5 @@ class WeatherService {
       // Cuaca gagal ≠ app mati
       return WeatherContext.unknown();
     }
-  }
-
-  Future<Position> getCurrentPosition() async {
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    return await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-  }
-
-  Future<String> getCurrentCity() async {
-    LocationPermission permission = await Geolocator.checkPermission();
-
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-
-    Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-
-    List<Placemark> placemarks = await Geocoding().placemarkFromCoordinates(
-      position.latitude,
-      position.longitude,
-    );
-
-    debugPrint(
-      'latitude: ${position.latitude}, longitude: ${position.longitude}',
-    );
-
-    debugPrint(placemarks[0].toString());
-
-    String? city = placemarks[0].locality;
-    return city ?? '';
   }
 }
