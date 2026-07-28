@@ -89,9 +89,10 @@ void main() {
       chat,
     );
 
-    await recommender.getRecommendation(
+    await recommender.reply(
       userId: 'u1',
       userMessage: 'laper',
+      withContext: true,
       lat: -6.2,
       lng: 106.8,
     );
@@ -110,7 +111,11 @@ void main() {
       FakeMapoChat(jsonReply()),
     );
 
-    await recommender.getRecommendation(userId: 'u1', userMessage: 'laper');
+    await recommender.reply(
+      userId: 'u1',
+      userMessage: 'laper',
+      withContext: true,
+    );
 
     expect(weather.calls, isEmpty);
   });
@@ -122,9 +127,10 @@ void main() {
       FakeMapoChat(jsonReply(name: 'Bakso')),
     );
 
-    final result = await recommender.getRecommendation(
+    final result = await recommender.reply(
       userId: 'u1',
       userMessage: 'laper',
+      withContext: true,
     );
 
     expect(result.responseType, ResponseType.single);
@@ -140,7 +146,11 @@ void main() {
     );
 
     expect(
-      () => recommender.getRecommendation(userId: 'u1', userMessage: 'laper'),
+      () => recommender.reply(
+        userId: 'u1',
+        userMessage: 'laper',
+        withContext: true,
+      ),
       throwsA(isA<MapoException>()),
     );
   });
@@ -153,8 +163,29 @@ void main() {
     );
 
     expect(
-      () => recommender.getRecommendation(userId: 'u1', userMessage: 'laper'),
+      () => recommender.reply(
+        userId: 'u1',
+        userMessage: 'laper',
+        withContext: true,
+      ),
       throwsA(isA<MapoException>()),
     );
+  });
+
+  test('withContext false mengirim pesan mentah tanpa blok konteks', () async {
+    final chat = FakeMapoChat(jsonReply());
+    final recommender = MapoRecommender(
+      FakeWeatherService(),
+      FakeMealHistory(),
+      chat,
+    );
+
+    await recommender.reply(
+      userId: 'u1',
+      userMessage: 'berkuah',
+      withContext: false,
+    );
+
+    expect(chat.prompts.single, 'berkuah');
   });
 }

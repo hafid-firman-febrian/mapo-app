@@ -9,6 +9,7 @@ import '../domain/mapo_chat.dart';
 import '../domain/mapo_recommender.dart';
 import '../domain/mapo_schema.dart';
 import '../models/mapo_response.dart';
+import '../models/chat_turn.dart';
 
 // ── Data layer ────────────────────────────────────────────
 final firestoreProvider = Provider((ref) => FirebaseFirestore.instance);
@@ -65,41 +66,60 @@ final recommenderProvider = Provider(
 );
 
 // ── Auth ──────────────────────────────────────────────────
-final authProvider = StreamProvider<User?>(
-  (ref) => FirebaseAuth.instance.authStateChanges(),
+final firebaseAuthProvider = Provider<FirebaseAuth>(
+  (ref) => FirebaseAuth.instance,
 );
 
+final authStateProvider = StreamProvider<User?>(
+  (ref) => ref.watch(firebaseAuthProvider).authStateChanges(),
+);
+
+/// Dibaca sinkron dari `currentUser` (main() sudah `await signInAnonymously()`
+/// sebelum runApp), tapi ikut invalidasi kalau auth state berubah.
+/// Test meng-override provider ini langsung dengan sebuah String.
+final currentUserIdProvider = Provider<String?>((ref) {
+  ref.watch(authStateProvider);
+  return ref.watch(firebaseAuthProvider).currentUser?.uid;
+});
+
 // ── Chat state ────────────────────────────────────────────
-final chatProvider = AsyncNotifierProvider<ChatNotifier, MapoResponse?>(
+final chatProvider = NotifierProvider<ChatNotifier, List<ChatTurn>>(
   ChatNotifier.new,
 );
 
-class ChatNotifier extends AsyncNotifier<MapoResponse?> {
+class ChatNotifier extends Notifier<List<ChatTurn>> {
   @override
-  Future<MapoResponse?> build() async => null;
+  List<ChatTurn> build() => const [];
+
+  bool get _isFirstTurn => state.whereType<MapoTurn>().isEmpty;
 
   Future<void> ask(String message, {double? lat, double? lng}) async {
-    // final user = ref.read(authProvider).value;
-    final user = FirebaseAuth.instance.currentUser;
+    final userId = ref.read(currentUserIdProvider);
+    final history = [...state, UserTurn(message)];
 
-    if (user == null) {
-      state = AsyncValue.error(
-        MapoException('Belum login'),
-        StackTrace.current,
-      );
+    if (userId == null) {
+      state = [...history, const ErrorTurn('Belum login, coba buka ulang app')];
       return;
     }
 
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      return ref
+    final withContext = _isFirstTurn;
+    state = [...history, const PendingTurn()];
+
+    try {
+      final response = await ref
           .read(recommenderProvider)
-          .getRecommendation(
-            userId: user.uid,
+          .reply(
+            userId: userId,
             userMessage: message,
+            withContext: withContext,
             lat: lat,
             lng: lng,
           );
-    });
+      state = [...history, MapoTurn(response)];
+    } on MapoException catch (e) {
+      state = [...history, ErrorTurn(e.message)];
+    } catch (_) {
+      state = [...history, const ErrorTurn('Mapo lagi bingung, coba lagi ya')];
+    }
   }
 }

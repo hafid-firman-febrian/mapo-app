@@ -14,9 +14,35 @@ class MapoRecommender {
 
   MapoRecommender(this._weather, this._history, this._chat);
 
-  Future<MapoResponse> getRecommendation({
+  /// [withContext] hanya `true` di turn pertama. [MapoChat] menyimpan riwayat
+  /// sendiri, jadi mengirim ulang blok konteks tiap turn cuma buang token dan
+  /// bikin model ragu konteks mana yang terbaru.
+  Future<MapoResponse> reply({
     required String userId,
     required String userMessage,
+    required bool withContext,
+    double? lat,
+    double? lng,
+  }) async {
+    final prompt = withContext
+        ? '${await _contextBlock(userId: userId, lat: lat, lng: lng)}'
+              '\n\nPesan user: "$userMessage"'
+        : userMessage;
+
+    final raw = await _chat.send(prompt);
+    if (raw == null || raw.isEmpty) {
+      throw MapoException('Respons kosong dari model');
+    }
+
+    try {
+      return MapoResponse.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    } on FormatException {
+      throw MapoException('Format respons tidak valid');
+    }
+  }
+
+  Future<String> _contextBlock({
+    required String userId,
     double? lat,
     double? lng,
   }) async {
@@ -30,28 +56,18 @@ class MapoRecommender {
     ]);
 
     final weather = results[0] as WeatherContext;
-    debugPrint('WEATHER: ${weather.description}, ${weather.temperature}°C');
     final recentMeals = results[1] as List<String>;
-    debugPrint('RECENT MEALS: $recentMeals');
     final prefs = results[2] as UserPrefs;
+
+    debugPrint('WEATHER: ${weather.description}, ${weather.temperature}°C');
+    debugPrint('RECENT MEALS: $recentMeals');
     debugPrint('PREFS: ${prefs.budgetRange}, ${prefs.restrictions}');
 
-    final contextBlock = _buildContextBlock(
+    return _buildContextBlock(
       weather: weather,
       recentMeals: recentMeals,
       prefs: prefs,
     );
-
-    final raw = await _chat.send('$contextBlock\n\nPesan user: "$userMessage"');
-    if (raw == null || raw.isEmpty) {
-      throw MapoException('Respons kosong dari model');
-    }
-
-    try {
-      return MapoResponse.fromJson(jsonDecode(raw) as Map<String, dynamic>);
-    } on FormatException {
-      throw MapoException('Format respons tidak valid');
-    }
   }
 
   String _buildContextBlock({

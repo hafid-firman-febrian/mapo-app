@@ -14,7 +14,7 @@ Perbarui kolom ini setiap kali sebuah task selesai dan sudah diverifikasi.
 | 2 | `WeatherContext` cast `num` | ✅ selesai | tidak |
 | 3 | Pisahkan `LocationService` | 🟡 kode selesai, **Step 12 (verifikasi device) belum** | **ya** — Step 12 |
 | 4 | Seam `MapoChat` | ✅ selesai | tidak |
-| 5 | Multi-turn `ChatSession` | ⬜ belum | **ya** — Step 9 |
+| 5 | Multi-turn `ChatSession` | 🟡 kode selesai, **Step 9 (verifikasi device) belum** | **ya** — Step 9 |
 | 6 | Loop tulis `meal_history` | ⬜ belum | **ya** — Step 8 |
 | 7 | Loop tulis `UserPrefs` | ⬜ belum | **ya** — Step 12 |
 | 8 | `firestore.rules` | ⬜ belum | **ya** — Step 5 |
@@ -870,7 +870,7 @@ Konteks (cuaca, riwayat, prefs) hanya dikirim di **turn pertama**. `ChatSession`
   - `final chatProvider = NotifierProvider<ChatNotifier, List<ChatTurn>>`
   - `ChatNotifier.ask(String message, {double? lat, double? lng}) → Future<void>`
 
-- [ ] **Step 1: Tulis test yang gagal**
+- [x] **Step 1: Tulis test yang gagal**
 
 Buat `test/providers/chat_notifier_test.dart`:
 
@@ -976,13 +976,13 @@ import '../domain/mapo_recommender_test.dart'
 
 Ketiga fake itu sudah dideklarasikan di Task 4 dengan konstruktor tanpa argumen wajib, jadi tidak ada yang perlu diubah di `test/domain/mapo_recommender_test.dart` untuk keperluan import ini.
 
-- [ ] **Step 2: Jalankan test untuk memastikan gagal**
+- [x] **Step 2: Jalankan test untuk memastikan gagal**
 
 Run: `flutter test test/providers/chat_notifier_test.dart`
 
 Expected: FAIL — `Target of URI doesn't exist: 'package:mapo_app/models/chat_turn.dart'`, `currentUserIdProvider` tidak dikenal, `chatProvider` bukan `NotifierProvider`.
 
-- [ ] **Step 3: Buat model `ChatTurn`**
+- [x] **Step 3: Buat model `ChatTurn`**
 
 Buat `lib/models/chat_turn.dart`:
 
@@ -1016,7 +1016,7 @@ class ErrorTurn extends ChatTurn {
 }
 ```
 
-- [ ] **Step 4: Ubah recommender jadi sadar turn**
+- [x] **Step 4: Ubah recommender jadi sadar turn**
 
 Di `lib/domain/mapo_recommender.dart`, ganti `getRecommendation` (baris 30-70) dengan `reply`:
 
@@ -1101,7 +1101,7 @@ Lalu di `test/domain/mapo_recommender_test.dart`, ganti semua `getRecommendation
   });
 ```
 
-- [ ] **Step 5: Tulis ulang provider auth dan `ChatNotifier`**
+- [x] **Step 5: Tulis ulang provider auth dan `ChatNotifier`**
 
 Di `lib/providers/mapo_providers.dart`, tambahkan import:
 
@@ -1172,13 +1172,13 @@ class ChatNotifier extends Notifier<List<ChatTurn>> {
 
 Perhatikan: `state` diganti dengan `[...history, ...]`, bukan `[...state, ...]` — ini yang membuang `PendingTurn` saat request selesai.
 
-- [ ] **Step 6: Jalankan test provider**
+- [x] **Step 6: Jalankan test provider**
 
 Run: `flutter test test/providers/chat_notifier_test.dart test/domain/mapo_recommender_test.dart`
 
 Expected: PASS semua (6 test notifier, 6 test recommender).
 
-- [ ] **Step 7: Tulis ulang `ChatScreen` jadi daftar pesan**
+- [x] **Step 7: Tulis ulang `ChatScreen` jadi daftar pesan**
 
 Ganti seluruh isi `lib/ui/chat_screen.dart` dengan:
 
@@ -1395,7 +1395,7 @@ class _InputBar extends StatelessWidget {
 }
 ```
 
-- [ ] **Step 8: Jalankan seluruh test dan analyze**
+- [x] **Step 8: Jalankan seluruh test dan analyze**
 
 Run: `flutter test && flutter analyze`
 
@@ -1412,7 +1412,7 @@ Expected:
 - Setelah menekan quick reply, balasan Mapo harus menyambung pertanyaannya, bukan mengulang dari nol.
 - Seluruh riwayat percakapan tetap ada di layar.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add lib/models/chat_turn.dart lib/domain/mapo_recommender.dart lib/providers/mapo_providers.dart lib/ui/chat_screen.dart test/providers/chat_notifier_test.dart test/domain/mapo_recommender_test.dart
