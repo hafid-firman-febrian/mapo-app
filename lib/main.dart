@@ -22,8 +22,17 @@ void main() async {
     providerApple: kDebugMode ? AppleDebugProvider() : AppleAppAttestProvider(),
   );
 
+  // Sign-in anonim tidak boleh menghalangi runApp. Kalau first launch terjadi
+  // tanpa koneksi, panggilan ini throw — tanpa guard ini future main() reject,
+  // runApp tak pernah kepanggil, dan layar tinggal putih tanpa pesan apa pun.
+  // Sisa app sudah aman tanpa user: currentUserIdProvider balikin null dan
+  // ChatNotifier.ask merender ErrorTurn('Belum login, coba buka ulang app').
   if (FirebaseAuth.instance.currentUser == null) {
-    await FirebaseAuth.instance.signInAnonymously();
+    try {
+      await FirebaseAuth.instance.signInAnonymously();
+    } catch (e) {
+      debugPrint('Anonymous sign-in gagal: $e');
+    }
   }
 
   debugPrint('UID: ${FirebaseAuth.instance.currentUser?.uid}');
