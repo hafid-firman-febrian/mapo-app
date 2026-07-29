@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mapo_app/firebase_options.dart';
 import 'package:mapo_app/themes/app_theme.dart';
-import 'package:mapo_app/ui/chat_screen.dart';
+import 'package:mapo_app/ui/screens/chat_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
