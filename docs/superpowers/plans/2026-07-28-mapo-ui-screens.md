@@ -423,12 +423,14 @@ git commit -m "feat: tambah GroundingBadge untuk context_used"
 The highest-priority component per the user's own ordering. This task **replaces** the existing `lib/ui/widgets/recommendation_card.dart` (currently a plain Material `Card` with emoji icons) with the on-brand version: category-color fill, icon in a translucent box, decorative circle, scrim-protected text (Accessibility Rule A), tag pills, "Makan ini" CTA + optional "lagi" retry button. Only the `hero` variant (used by the Single screen) in this task — `row` (Options) is Task 4.
 
 **Files:**
+- Create: `lib/utils/currency.dart` (shared Rupiah formatter — Task 10's `MealHistoryTile` needs the exact same formatting and must import this rather than redefine it)
 - Modify: `lib/ui/widgets/recommendation_card.dart` (full rewrite)
 - Test: `test/ui/widgets/recommendation_card_test.dart`
 
 **Interfaces:**
 - Consumes: `Recommendation` (`lib/models/mapo_response.dart`, already exists), `categoryTone`/`categoryIcon` (Task 1)
 - Produces:
+  - `String formatRupiah(int price)` (in `lib/utils/currency.dart`)
   - `enum RecommendationCardVariant { hero, row }`
   - `RecommendationCard({required Recommendation recommendation, RecommendationCardVariant variant = RecommendationCardVariant.hero, VoidCallback? onTap, VoidCallback? onPick, VoidCallback? onRetry})`
 
@@ -543,7 +545,18 @@ void main() {
 Run: `flutter test test/ui/widgets/recommendation_card_test.dart`
 Expected: FAIL — current `RecommendationCard` constructor doesn't accept `variant`/`onPick`/`onRetry`, and doesn't render a "Makan ini" button.
 
-- [ ] **Step 3: Rewrite `RecommendationCard`**
+- [ ] **Step 3: Create the shared Rupiah formatter**
+
+Create `lib/utils/currency.dart`:
+
+```dart
+String formatRupiah(int price) => price.toString().replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+$)'),
+      (m) => '${m[1]}.',
+    );
+```
+
+- [ ] **Step 4: Rewrite `RecommendationCard`**
 
 Replace the entire content of `lib/ui/widgets/recommendation_card.dart`:
 
@@ -554,6 +567,7 @@ import '../../models/mapo_response.dart';
 import '../../themes/app_colors.dart';
 import '../../themes/app_spacing.dart';
 import '../../themes/app_text_styles.dart';
+import '../../utils/currency.dart';
 
 enum RecommendationCardVariant { hero, row }
 
@@ -816,7 +830,7 @@ class _RowContent extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.xs),
           Text(
-            'Rp${_formatPrice(r.priceEstimate)}',
+            'Rp${formatRupiah(r.priceEstimate)}',
             style: AppText.bodyMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
           ),
         ],
@@ -824,21 +838,16 @@ class _RowContent extends StatelessWidget {
     );
   }
 }
-
-String _formatPrice(int price) => price.toString().replaceAllMapped(
-      RegExp(r'(\d)(?=(\d{3})+$)'),
-      (m) => '${m[1]}.',
-    );
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [ ] **Step 5: Run test to verify it passes**
 
 Run: `flutter test test/ui/widgets/recommendation_card_test.dart`
 Expected: PASS (5 tests)
 
-Note: Step 3's rewrite included `_RowContent` (the `row` variant) alongside `_HeroContent` in the same pass, since both variants share the `_ScrimText`/`_tags`/`_formatPrice` helpers and splitting them into two separate file edits would mean rewriting the same file twice. Steps 5-7 below lock down the `row` variant's behavior with its own tests (it has zero coverage so far — the tests above only exercise `hero`).
+Note: Step 4's rewrite included `_RowContent` (the `row` variant) alongside `_HeroContent` in the same pass, since both variants share the `_ScrimText`/`_tags` helpers and splitting them into two separate file edits would mean rewriting the same file twice. Steps 6-8 below lock down the `row` variant's behavior with its own tests (it has zero coverage so far — the tests above only exercise `hero`).
 
-- [ ] **Step 5: Write tests for the `row` variant**
+- [ ] **Step 6: Write tests for the `row` variant**
 
 Append to `test/ui/widgets/recommendation_card_test.dart`, inside `void main() { ... }`, after the last test:
 
@@ -896,20 +905,20 @@ Append to `test/ui/widgets/recommendation_card_test.dart`, inside `void main() {
   });
 ```
 
-- [ ] **Step 6: Run test to verify it passes**
+- [ ] **Step 7: Run test to verify it passes**
 
 Run: `flutter test test/ui/widgets/recommendation_card_test.dart`
-Expected: PASS (8 tests). If `'row menampilkan nama, kategori, spice level, dan harga'` fails on the price string, double check `_formatPrice(13000)` — it must produce `13.000` (dot as thousands separator, no currency decimals), matching the existing formatter this replaces.
+Expected: PASS (8 tests). If `'row menampilkan nama, kategori, spice level, dan harga'` fails on the price string, double check `formatRupiah(13000)` — it must produce `13.000` (dot as thousands separator, no currency decimals), matching the existing formatter this replaces.
 
-- [ ] **Step 7: Run analyze**
+- [ ] **Step 8: Run analyze**
 
 Run: `flutter analyze 2>&1 | tail -20`
 Expected: `No issues found!` — this was the last file referencing the old `IconData`-based `categoryIcon`, so the migration from Task 1 Step 5 is now fully clean.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
-git add lib/ui/widgets/recommendation_card.dart test/ui/widgets/recommendation_card_test.dart
+git add lib/utils/currency.dart lib/ui/widgets/recommendation_card.dart test/ui/widgets/recommendation_card_test.dart
 git commit -m "feat: redesign RecommendationCard (hero + row) — kartu warna kategori, scrim kontras, CTA Makan ini"
 ```
 
@@ -2153,7 +2162,7 @@ Riwayat's list row. Unlike `RecommendationCard`, this sits on the plain white/pa
 - Test: `test/ui/widgets/meal_history_tile_test.dart`
 
 **Interfaces:**
-- Consumes: `MealHistoryEntry` (Task 9), `categoryTone`/`categoryIcon` (Task 1)
+- Consumes: `MealHistoryEntry` (Task 9), `categoryTone`/`categoryIcon` (Task 1), `formatRupiah` (`lib/utils/currency.dart`, Task 3 — import it, do not redefine a local price formatter)
 - Produces: `MealHistoryTile({required MealHistoryEntry entry})`
 
 - [ ] **Step 1: Write the failing tests**
@@ -2226,6 +2235,7 @@ import '../../models/meal_history_entry.dart';
 import '../../themes/app_colors.dart';
 import '../../themes/app_spacing.dart';
 import '../../themes/app_text_styles.dart';
+import '../../utils/currency.dart';
 
 class MealHistoryTile extends StatelessWidget {
   final MealHistoryEntry entry;
@@ -2264,7 +2274,7 @@ class MealHistoryTile extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.xs),
           Text(
-            entry.price == null ? 'harga belum tercatat' : 'Rp${_formatPrice(entry.price!)}',
+            entry.price == null ? 'harga belum tercatat' : 'Rp${formatRupiah(entry.price!)}',
             style: entry.price == null
                 ? AppText.caption.copyWith(fontStyle: FontStyle.italic)
                 : AppText.bodyMedium.copyWith(fontWeight: FontWeight.w600),
@@ -2276,11 +2286,6 @@ class MealHistoryTile extends StatelessWidget {
 
   String _formatTime(DateTime dt) =>
       '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-
-  String _formatPrice(int price) => price.toString().replaceAllMapped(
-        RegExp(r'(\d)(?=(\d{3})+$)'),
-        (m) => '${m[1]}.',
-      );
 }
 ```
 
