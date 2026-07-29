@@ -33,6 +33,7 @@ class QuickReplyChip extends StatelessWidget {
     final tone = _tone;
     return Semantics(
       container: true,
+      excludeSemantics: true,
       button: true,
       selected: selected,
       label: label,
