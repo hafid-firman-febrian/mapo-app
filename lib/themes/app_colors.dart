@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 class AppColors {
   AppColors._();
@@ -67,29 +68,29 @@ CategoryTone categoryTone(String category) {
   }
 }
 
-IconData categoryIcon(String category) {
+List<List<dynamic>> categoryIcon(String category) {
   switch (category) {
     case 'berkuah':
-      return Icons.ramen_dining;
+      return HugeIcons.strokeRoundedRiceBowl01;
     case 'pedas':
-      return Icons.local_fire_department;
+      return HugeIcons.strokeRoundedFire;
     case 'bakar':
-      return Icons.outdoor_grill;
+      return HugeIcons.strokeRoundedBbqGrill;
     case 'goreng':
-      return Icons.lunch_dining;
+      return HugeIcons.strokeRoundedChickenThighs;
     case 'manis':
-      return Icons.cake;
+      return HugeIcons.strokeRoundedCakeSlice;
     case 'sehat':
-      return Icons.eco;
+      return HugeIcons.strokeRoundedSalad;
     case 'mie':
-      return Icons.dinner_dining;
+      return HugeIcons.strokeRoundedNoodles;
     case 'nasi':
-      return Icons.rice_bowl;
+      return HugeIcons.strokeRoundedRiceBowl02;
     case 'cemilan':
-      return Icons.bakery_dining;
+      return HugeIcons.strokeRoundedCupcake01;
     case 'cepat_saji':
-      return Icons.fastfood;
+      return HugeIcons.strokeRoundedFrenchFries01;
     default:
-      return Icons.restaurant;
+      return HugeIcons.strokeRoundedRestaurant;
   }
 }
