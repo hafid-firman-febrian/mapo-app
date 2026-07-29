@@ -171,5 +171,12 @@ class ChatNotifier extends Notifier<List<ChatTurn>> {
     await ref
         .read(mealHistoryProvider)
         .saveMeal(userId, recommendation.name, recommendation.category);
+
+    // `mealHistoryEntriesProvider` sudah punya listener aktif (drawer, layar
+    // Riwayat) sejak sebelum tulisan ini terjadi, jadi Riverpod tidak pernah
+    // menganggap cache-nya basi dengan sendirinya — tanpa invalidate ini,
+    // keduanya tetap menampilkan data lama sampai seluruh container di-reset
+    // (hot restart).
+    ref.invalidate(mealHistoryEntriesProvider);
   }
 }

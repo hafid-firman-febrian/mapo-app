@@ -1614,7 +1614,7 @@ Run: `flutter test && flutter analyze`
 
 Expected: semua PASS, `No issues found!`.
 
-- [ ] **Step 8: Verifikasi manual loop tulis-baca**
+- [ ] **Step 8: Verifikasi manual loop tulis-baca** (verifikasi pertama menemukan bug: SnackBar muncul dan data tersimpan, tapi layar Riwayat tidak menampilkan menu baru sampai hot restart. Penyebab: `mealHistoryEntriesProvider` — `FutureProvider` yang sudah punya listener aktif dari drawer/ChatScreen — tidak pernah di-invalidate setelah `saveMeal`. Sudah diperbaiki: `pickMeal` sekarang memanggil `ref.invalidate(mealHistoryEntriesProvider)` setelah menyimpan. Checklist di bawah masih perlu diulang di device untuk konfirmasi final.)
 
 Run: `flutter run --dart-define=WEATHER_API_KEY=<kunci_openweather_kamu>`
 

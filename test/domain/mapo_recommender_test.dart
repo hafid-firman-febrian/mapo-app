@@ -33,6 +33,7 @@ class FakeMealHistory implements MealHistoryService {
   final List<String> recent;
   final UserPrefs prefs;
   final saved = <Map<String, String>>[];
+  int getMealHistoryCallCount = 0;
 
   FakeMealHistory({this.recent = const [], UserPrefs? prefs})
     : prefs = prefs ?? const UserPrefs();
@@ -49,9 +50,21 @@ class FakeMealHistory implements MealHistoryService {
     saved.add({'name': name, 'category': category});
   }
 
+  /// Mencerminkan `saved` supaya test bisa membuktikan `mealHistoryEntriesProvider`
+  /// benar-benar dibaca ulang setelah `saveMeal`, bukan cuma cek jumlah panggilan.
   @override
-  Future<List<MealHistoryEntry>> getMealHistory(String userId, {int limit = 20}) async =>
-      [];
+  Future<List<MealHistoryEntry>> getMealHistory(String userId, {int limit = 20}) async {
+    getMealHistoryCallCount++;
+    return saved
+        .map(
+          (m) => MealHistoryEntry(
+            name: m['name']!,
+            category: m['category']!,
+            eatenAt: DateTime.now(),
+          ),
+        )
+        .toList();
+  }
 }
 
 class FakeMapoChat implements MapoChat {

@@ -179,4 +179,34 @@ void main() {
 
     expect(history.saved, isEmpty);
   });
+
+  test('pickMeal menyegarkan mealHistoryEntriesProvider, bukan cuma menyimpan', () async {
+    final history = FakeMealHistory();
+    final container = makeContainer(
+      chat: FakeMapoChat(jsonReply(name: 'Bakso')),
+      history: history,
+    );
+    addTearDown(container.dispose);
+
+    final before = await container.read(mealHistoryEntriesProvider.future);
+    expect(before, isEmpty, reason: 'belum ada yang dipilih');
+
+    await container.read(chatProvider.notifier).ask('laper');
+    final picked = (container.read(chatProvider).last as MapoTurn)
+        .response
+        .recommendations
+        .single;
+    await container.read(chatProvider.notifier).pickMeal(picked);
+
+    final after = await container.read(mealHistoryEntriesProvider.future);
+    expect(
+      after,
+      hasLength(1),
+      reason:
+          'mealHistoryEntriesProvider cuma di-watch, tidak pernah di-invalidate '
+          'setelah pickMeal — tanpa perbaikan, ini tetap kosong sampai container '
+          'baru (di device: sampai hot restart)',
+    );
+    expect(after.single.name, 'Bakso');
+  });
 }
