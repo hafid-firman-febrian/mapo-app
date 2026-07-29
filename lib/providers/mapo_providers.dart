@@ -11,6 +11,7 @@ import '../domain/mapo_schema.dart';
 import '../models/mapo_response.dart';
 import '../models/chat_turn.dart';
 import '../models/meal_history_entry.dart';
+import '../models/user_prefs.dart';
 
 // ── Data layer ────────────────────────────────────────────
 final firestoreProvider = Provider((ref) => FirebaseFirestore.instance);
@@ -87,6 +88,19 @@ final mealHistoryEntriesProvider = FutureProvider<List<MealHistoryEntry>>((ref) 
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return [];
   return ref.watch(mealHistoryProvider).getMealHistory(userId);
+});
+
+final prefsProvider = FutureProvider<UserPrefs>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return const UserPrefs();
+  return ref.watch(mealHistoryProvider).getPreferences(userId);
+});
+
+/// Seam yang sama seperti currentUserIdProvider: widget tak pernah menyentuh
+/// FirebaseAuth.instance langsung, jadi test bisa override tanpa Firebase asli.
+final currentUserDisplayProvider = Provider<({String displayName, bool isAnonymous})>((ref) {
+  final user = ref.watch(firebaseAuthProvider).currentUser;
+  return (displayName: user?.displayName ?? 'Kamu', isAnonymous: user?.isAnonymous ?? true);
 });
 
 // ── Chat state ────────────────────────────────────────────
