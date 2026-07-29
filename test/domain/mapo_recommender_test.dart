@@ -6,6 +6,7 @@ import 'package:mapo_app/data/weather_service.dart';
 import 'package:mapo_app/domain/mapo_chat.dart';
 import 'package:mapo_app/domain/mapo_recommender.dart';
 import 'package:mapo_app/models/mapo_response.dart';
+import 'package:mapo_app/models/meal_history_entry.dart';
 import 'package:mapo_app/models/user_prefs.dart';
 import 'package:mapo_app/models/weather_context.dart';
 
@@ -47,6 +48,10 @@ class FakeMealHistory implements MealHistoryService {
   Future<void> saveMeal(String userId, String name, String category) async {
     saved.add({'name': name, 'category': category});
   }
+
+  @override
+  Future<List<MealHistoryEntry>> getMealHistory(String userId, {int limit = 20}) async =>
+      [];
 }
 
 class FakeMapoChat implements MapoChat {

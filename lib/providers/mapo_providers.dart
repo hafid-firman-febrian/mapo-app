@@ -10,6 +10,7 @@ import '../domain/mapo_recommender.dart';
 import '../domain/mapo_schema.dart';
 import '../models/mapo_response.dart';
 import '../models/chat_turn.dart';
+import '../models/meal_history_entry.dart';
 
 // ── Data layer ────────────────────────────────────────────
 final firestoreProvider = Provider((ref) => FirebaseFirestore.instance);
@@ -80,6 +81,12 @@ final authStateProvider = StreamProvider<User?>(
 final currentUserIdProvider = Provider<String?>((ref) {
   ref.watch(authStateProvider);
   return ref.watch(firebaseAuthProvider).currentUser?.uid;
+});
+
+final mealHistoryEntriesProvider = FutureProvider<List<MealHistoryEntry>>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return [];
+  return ref.watch(mealHistoryProvider).getMealHistory(userId);
 });
 
 // ── Chat state ────────────────────────────────────────────
