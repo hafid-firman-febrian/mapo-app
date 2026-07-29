@@ -30,7 +30,18 @@ class AppColors {
 
   static final onColorSoft = Colors.white.withValues(alpha: 0.90);
   static final onColorFaint = Colors.white.withValues(alpha: 0.85);
-  static final overlayIcon = Colors.white.withValues(alpha: 0.20);
+
+  /// Latar kotak ikon di atas `CategoryTone.base` — Accessibility Rule A untuk
+  /// ikon. Harus berbasis hitam, bukan putih: overlay putih *menerangkan*
+  /// backdrop sehingga ikon putih di atasnya makin tenggelam (kasus terburuk
+  /// amber = 1.76:1, jauh di bawah minimum 3:1 WCAG 1.4.11 untuk non-teks).
+  /// Hitam 20% menggelapkan backdrop dan membawa kasus terburuk yang sama ke
+  /// 3.13:1. Tetap transparan supaya warna kategori masih tembus (frosted),
+  /// bukan kotak hitam pekat.
+  static final overlayIcon = Colors.black.withValues(alpha: 0.20);
+
+  /// Lingkaran dekoratif di kartu hero — murni ornamen, tidak ada teks/ikon di
+  /// atasnya, jadi tidak terikat aturan kontras.
   static final overlayCircle = Colors.white.withValues(alpha: 0.10);
   static final overlayTag = Colors.white.withValues(alpha: 0.20);
 }

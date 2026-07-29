@@ -53,10 +53,13 @@ class AppText {
     color: AppColors.inkSoft,
   );
 
+  /// Warna di sini praktis selalu ditimpa `foregroundColor` tombol, tapi
+  /// putih sebagai default itu jebakan: latar tombol default (`AppColors.brand`)
+  /// cuma 2.03:1 dengan putih. `ink` menyamakan default dengan yang benar.
   static TextStyle get button => _base.copyWith(
     fontSize: 15,
     fontWeight: FontWeight.w600,
-    color: Colors.white,
+    color: AppColors.ink,
   );
 
   static TextStyle get chip =>

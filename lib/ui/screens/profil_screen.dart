@@ -117,10 +117,15 @@ class ProfilBody extends StatelessWidget {
                     ],
                   ),
                 ),
+                // Latar `blueDark`, bukan `blue`: putih di atas `blue` cuma
+                // 4.16:1 (di bawah AA 4.5:1) dan `ink` di atas `blue` malah
+                // lebih buruk (3.37:1). `blueDark` + putih = 6.22:1, dan tetap
+                // biru — sama seperti Rule B yang memakai `tone.dark` sebagai
+                // varian yang lolos kontras.
                 ElevatedButton(
                   onPressed: onGoogleSignInTap,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.blue,
+                    backgroundColor: AppColors.blueDark,
                     foregroundColor: Colors.white,
                   ),
                   child: const Text('Masuk'),

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:mapo_app/firebase_options.dart';
+import 'package:mapo_app/themes/app_colors.dart';
 import 'package:mapo_app/themes/app_theme.dart';
 import 'package:mapo_app/ui/debug/screens_gallery.dart';
 import 'package:mapo_app/ui/screens/chat_screen.dart';
@@ -68,7 +69,10 @@ class _DebugHome extends StatelessWidget {
           child: FloatingActionButton.small(
             heroTag: 'debug-gallery-fab',
             onPressed: () => Navigator.of(context).pushNamed('/debug'),
-            child: const HugeIcon(icon: HugeIcons.strokeRoundedIdea01, color: Colors.white),
+            // FAB debug memakai `primaryContainer` (amber muda) dari seeded
+            // scheme — ikon putih di atasnya nyaris tak terlihat. `ink` sama
+            // seperti tombol lain sesudah perbaikan kontras.
+            child: const HugeIcon(icon: HugeIcons.strokeRoundedIdea01, color: AppColors.ink),
           ),
         ),
       ],

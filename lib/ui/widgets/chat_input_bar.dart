@@ -62,9 +62,12 @@ class ChatInputBar extends StatelessWidget {
                   customBorder: const CircleBorder(),
                   onTap: enabled ? _submit : null,
                   child: Center(
+                    // Ikon `ink` di atas `brand` = 6.90:1. Putih cuma 2.03:1 —
+                    // di bawah minimum 3:1 WCAG 1.4.11 untuk ikon kontrol.
+                    // State disabled (`inkFaint`) dikecualikan oleh 1.4.11.
                     child: HugeIcon(
                       icon: HugeIcons.strokeRoundedSent02,
-                      color: Colors.white,
+                      color: enabled ? AppColors.ink : Colors.white,
                       size: AppSizes.iconMedium,
                     ),
                   ),

@@ -185,9 +185,12 @@ class _HeroContent extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: onPick,
+                      // Teks `ink` di atas `brand` = 6.90:1. Putih di atas
+                      // `brand` cuma 2.03:1 — pasangan yang sudah ditolak
+                      // Accessibility Rule C waktu memperbaiki judul MapoHeader.
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.brand,
-                        foregroundColor: Colors.white,
+                        foregroundColor: AppColors.ink,
                       ),
                       child: const Text('Makan ini'),
                     ),
@@ -245,32 +248,42 @@ class _RowContent extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
+          // Harga ikut masuk scrim yang sama dengan nama+meta. Sebelumnya ia
+          // berdiri sendiri sebagai teks putih langsung di atas `tone.base` —
+          // kegagalan kontras yang persis sama (2.03-4.16:1) yang bikin scrim
+          // ini ada. Satu panel untuk semua teks di baris ini.
           Expanded(
             child: _ScrimText(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
+              child: Row(
                 children: [
-                  Text(
-                    r.name,
-                    style: AppText.section.copyWith(color: Colors.white),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          r.name,
+                          style: AppText.section.copyWith(color: Colors.white),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          '${r.category} · ${r.spiceLevel.replaceAll('_', ' ')}',
+                          style: AppText.caption.copyWith(color: Colors.white),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: AppSpacing.xs),
                   Text(
-                    '${r.category} · ${r.spiceLevel.replaceAll('_', ' ')}',
-                    style: AppText.caption.copyWith(color: Colors.white),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    'Rp${formatRupiah(r.priceEstimate)}',
+                    style: AppText.bodyMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
             ),
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          Text(
-            'Rp${formatRupiah(r.priceEstimate)}',
-            style: AppText.bodyMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
           ),
         ],
       ),

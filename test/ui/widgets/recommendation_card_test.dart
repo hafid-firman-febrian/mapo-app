@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mapo_app/models/mapo_response.dart';
+import 'package:mapo_app/themes/app_colors.dart';
 import 'package:mapo_app/ui/widgets/recommendation_card.dart';
+
+/// Nilai scrim Accessibility Rule A. Diturunkan di spec dari kasus terburuk
+/// (amber) yang pas di 4.53:1 dengan teks putih — kalau seseorang menurunkan
+/// atau menghapus scrim-nya, test di bawah harus merah.
+final _scrimColor = Colors.black.withValues(alpha: 0.35);
+
+Color? _boxColor(Container c) => c.color ?? (c.decoration as BoxDecoration?)?.color;
+
+Finder _containerWithColor(Color color) =>
+    find.byWidgetPredicate((w) => w is Container && _boxColor(w) == color);
 
 const _rec = Recommendation(
   name: 'Soto Ayam',
@@ -147,5 +158,100 @@ void main() {
 
     await tester.tap(find.byType(RecommendationCard));
     expect(tapped, isTrue);
+  });
+
+  group('kontras (Accessibility Rule A)', () {
+    testWidgets('hero membungkus nama, alasan, dan tag dalam scrim 0.35', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(body: RecommendationCard(recommendation: _rec)),
+        ),
+      );
+
+      final scrim = _containerWithColor(_scrimColor);
+      expect(scrim, findsOneWidget);
+
+      for (final text in ['Soto Ayam', 'berkuah', 'sedang', 'cepat', 'hangat']) {
+        expect(
+          find.descendant(of: scrim, matching: find.text(text)),
+          findsOneWidget,
+          reason: '"$text" harus di dalam scrim, bukan langsung di atas tone.base',
+        );
+      }
+      expect(
+        find.descendant(of: scrim, matching: find.textContaining('Kuahnya anget')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('row membungkus nama, meta, DAN harga dalam satu scrim 0.35', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: RecommendationCard(
+              recommendation: _rec,
+              variant: RecommendationCardVariant.row,
+            ),
+          ),
+        ),
+      );
+
+      final scrim = _containerWithColor(_scrimColor);
+      expect(scrim, findsOneWidget);
+
+      for (final text in ['Soto Ayam', 'berkuah · sedang', 'Rp13.000']) {
+        expect(
+          find.descendant(of: scrim, matching: find.text(text)),
+          findsOneWidget,
+          reason: '"$text" harus di dalam scrim, bukan langsung di atas tone.base',
+        );
+      }
+    });
+
+    testWidgets('kotak ikon memakai overlay gelap, bukan putih', (tester) async {
+      for (final variant in RecommendationCardVariant.values) {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: RecommendationCard(recommendation: _rec, variant: variant),
+            ),
+          ),
+        );
+
+        expect(
+          _containerWithColor(AppColors.overlayIcon),
+          findsOneWidget,
+          reason: 'kotak ikon $variant harus pakai AppColors.overlayIcon',
+        );
+      }
+    });
+
+    testWidgets('tombol retry memakai overlay gelap yang sama', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RecommendationCard(recommendation: _rec, onRetry: () {}),
+          ),
+        ),
+      );
+
+      final button = tester.widget<IconButton>(find.byType(IconButton));
+      expect(
+        button.style?.backgroundColor?.resolve(<WidgetState>{}),
+        AppColors.overlayIcon,
+      );
+    });
+
+    testWidgets('tombol Makan ini pakai foreground ink, bukan putih', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(body: RecommendationCard(recommendation: _rec)),
+        ),
+      );
+
+      final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+      expect(button.style?.foregroundColor?.resolve(<WidgetState>{}), AppColors.ink);
+      expect(button.style?.backgroundColor?.resolve(<WidgetState>{}), AppColors.brand);
+    });
   });
 }

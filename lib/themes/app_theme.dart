@@ -30,10 +30,13 @@ class AppTheme {
         elevation: 0,
         centerTitle: false,
       ),
+      // `ink` di atas `brand` = 6.90:1; putih cuma 2.03:1. Pasangan
+      // putih-di-atas-brand ini sudah ditolak Accessibility Rule C waktu
+      // menentukan warna judul MapoHeader — default tombol ikut aturan sama.
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.brand,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.ink,
           elevation: 0,
           padding: AppSpacing.buttonPad,
           textStyle: AppText.button,
