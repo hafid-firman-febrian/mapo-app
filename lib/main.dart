@@ -37,7 +37,6 @@ class MapoApp extends StatelessWidget {
       title: 'MapoApp',
       theme: AppTheme.light,
       themeMode: ThemeMode.light,
-
       home: const ChatScreen(),
     );
   }
