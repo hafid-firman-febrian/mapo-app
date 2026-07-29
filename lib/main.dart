@@ -49,7 +49,9 @@ class MapoApp extends StatelessWidget {
       title: 'MapoApp',
       theme: AppTheme.light,
       themeMode: ThemeMode.light,
-      routes: kDebugMode ? {'/debug': (context) => const ScreensGallery()} : const {},
+      routes: kDebugMode
+          ? {'/debug': (context) => const ScreensGallery()}
+          : const {},
       home: kDebugMode ? const _DebugHome() : const ChatScreen(),
     );
   }
@@ -69,10 +71,10 @@ class _DebugHome extends StatelessWidget {
           child: FloatingActionButton.small(
             heroTag: 'debug-gallery-fab',
             onPressed: () => Navigator.of(context).pushNamed('/debug'),
-            // FAB debug memakai `primaryContainer` (amber muda) dari seeded
-            // scheme — ikon putih di atasnya nyaris tak terlihat. `ink` sama
-            // seperti tombol lain sesudah perbaikan kontras.
-            child: const HugeIcon(icon: HugeIcons.strokeRoundedIdea01, color: AppColors.ink),
+            child: const HugeIcon(
+              icon: HugeIcons.strokeRoundedIdea01,
+              color: AppColors.ink,
+            ),
           ),
         ),
       ],
