@@ -46,3 +46,7 @@ app.*.map.json
 
 # Subagent-driven-development scratch workspace
 .superpowers/
+
+# Plan dan spec kerja — bukan bagian dari sejarah kode, jangan pernah dicommit
+docs/superpowers/plans/
+docs/superpowers/specs/
