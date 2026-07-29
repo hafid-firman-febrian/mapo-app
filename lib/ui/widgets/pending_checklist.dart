@@ -57,9 +57,10 @@ class _PendingChecklistState extends State<PendingChecklist> {
         ),
         const SizedBox(height: AppSpacing.sm),
         for (var i = 0; i <= _stage && i < _steps.length; i++)
-          AnimatedOpacity(
-            opacity: i < _stage ? 1 : 1,
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: 1),
             duration: const Duration(milliseconds: 300),
+            builder: (context, value, child) => Opacity(opacity: value, child: child),
             child: Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.xs),
               child: Row(
