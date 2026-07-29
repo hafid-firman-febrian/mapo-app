@@ -39,10 +39,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (text.trim().isEmpty) return;
     _controller.clear();
 
-    final coords = await ref.read(coordsProvider.future);
-    if (!mounted) return;
-
-    await ref.read(chatProvider.notifier).ask(text, lat: coords?.lat, lng: coords?.lng);
+    // Koordinat sengaja tidak dibaca di sini: `ChatNotifier.ask` yang urus,
+    // supaya `PendingTurn` muncul sinkron dan field chat langsung nonaktif.
+    await ref.read(chatProvider.notifier).ask(text);
 
     if (!mounted || !_scroll.hasClients) return;
     await _scroll.animateTo(

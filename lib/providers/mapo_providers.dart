@@ -98,7 +98,11 @@ final prefsProvider = FutureProvider<UserPrefs>((ref) async {
 
 /// Seam yang sama seperti currentUserIdProvider: widget tak pernah menyentuh
 /// FirebaseAuth.instance langsung, jadi test bisa override tanpa Firebase asli.
+/// `authStateProvider` diwatch supaya provider ini benar-benar ikut invalidasi
+/// saat auth berubah — tanpa itu klaim "sama seperti currentUserIdProvider"
+/// bohong, dan nama user bakal ketinggalan begitu Google Sign-In asli masuk.
 final currentUserDisplayProvider = Provider<({String displayName, bool isAnonymous})>((ref) {
+  ref.watch(authStateProvider);
   final user = ref.watch(firebaseAuthProvider).currentUser;
   return (displayName: user?.displayName ?? 'Kamu', isAnonymous: user?.isAnonymous ?? true);
 });
@@ -114,7 +118,21 @@ class ChatNotifier extends Notifier<List<ChatTurn>> {
 
   bool get _isFirstTurn => state.whereType<MapoTurn>().isEmpty;
 
-  Future<void> ask(String message, {double? lat, double? lng}) async {
+  /// True selama satu `ask` masih jalan. Chip quick-reply, kartu Options, dan
+  /// contoh di Home tidak mengecek flag "sedang kirim" apa pun, jadi tanpa
+  /// penjaga ini dua `ask` bisa saling tindih: masing-masing memotret `state`
+  /// sendiri lalu menimpanya, dan satu percakapan penuh hilang.
+  bool _inFlight = false;
+
+  /// Koordinat diambil di dalam sini, bukan oleh pemanggil. Mengambilnya di
+  /// `ChatScreen._send` berarti ada jeda beberapa detik (dialog izin lokasi +
+  /// timeout GPS 15 detik) sebelum ada satu pun turn masuk ke state — layar
+  /// diam, field chat tetap aktif, dan window buat request tumpang tindih
+  /// terbuka lebar. Sekarang `PendingTurn` muncul sinkron begitu `ask`
+  /// dipanggil, dan fetch koordinat jadi detail internal sesudahnya.
+  Future<void> ask(String message) async {
+    if (_inFlight) return;
+
     final userId = ref.read(currentUserIdProvider);
     final history = [...state, UserTurn(message)];
 
@@ -125,22 +143,26 @@ class ChatNotifier extends Notifier<List<ChatTurn>> {
 
     final withContext = _isFirstTurn;
     state = [...history, const PendingTurn()];
+    _inFlight = true;
 
     try {
+      final coords = await ref.read(coordsProvider.future);
       final response = await ref
           .read(recommenderProvider)
           .reply(
             userId: userId,
             userMessage: message,
             withContext: withContext,
-            lat: lat,
-            lng: lng,
+            lat: coords?.lat,
+            lng: coords?.lng,
           );
       state = [...history, MapoTurn(response)];
     } on MapoException catch (e) {
       state = [...history, ErrorTurn(e.message)];
     } catch (_) {
       state = [...history, const ErrorTurn('Mapo lagi bingung, coba lagi ya')];
+    } finally {
+      _inFlight = false;
     }
   }
 }

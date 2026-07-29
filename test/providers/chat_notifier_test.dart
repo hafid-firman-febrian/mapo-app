@@ -22,9 +22,13 @@ void main() {
     );
   }
 
-  // Catatan: `coordsProvider` tidak perlu di-override. `ChatNotifier.ask`
-  // menerima lat/lng sebagai parameter — yang membaca `coordsProvider` adalah
-  // `ChatScreen`, bukan notifier-nya.
+  // Catatan: sejak `ask` yang membaca `coordsProvider` (bukan lagi
+  // `ChatScreen`), provider itu ikut jalan di test ini. Tetap tidak perlu
+  // di-override: `LocationService` memanggil Geolocator lewat platform channel
+  // yang tidak ada di lingkungan unit test, dan `coordsProvider` sendiri sudah
+  // membungkus semuanya dengan `catch (_) => null`. Jadi resolusinya `null`,
+  // cepat, dan deterministik — persis keadaan "lokasi tidak tersedia" yang
+  // memang ingin diuji.
 
   test('mulai dengan daftar turn kosong', () {
     final container = makeContainer(chat: FakeMapoChat(jsonReply()));
@@ -83,6 +87,40 @@ void main() {
     expect(turns, hasLength(2));
     expect(turns[0], isA<UserTurn>());
     expect(turns[1], isA<ErrorTurn>());
+  });
+
+  test('PendingTurn muncul sinkron, sebelum await apa pun', () async {
+    final container = makeContainer(chat: FakeMapoChat(jsonReply()));
+    addTearDown(container.dispose);
+
+    // Sengaja tidak di-await: yang diuji adalah state SEBELUM `ask` sempat
+    // menyentuh coords/model. Kalau fetch koordinat balik ke pemanggil, di
+    // titik ini state masih kosong dan field chat masih aktif berdetik-detik.
+    final pending = container.read(chatProvider.notifier).ask('laper');
+
+    final turns = container.read(chatProvider);
+    expect(turns, hasLength(2));
+    expect((turns[0] as UserTurn).text, 'laper');
+    expect(turns[1], isA<PendingTurn>());
+
+    await pending;
+  });
+
+  test('ask kedua selagi yang pertama jalan diabaikan, bukan menimpa', () async {
+    final chat = FakeMapoChat(jsonReply());
+    final container = makeContainer(chat: chat);
+    addTearDown(container.dispose);
+    final notifier = container.read(chatProvider.notifier);
+
+    final first = notifier.ask('laper');
+    await notifier.ask('yang lain');
+    await first;
+
+    final turns = container.read(chatProvider);
+    expect(turns, hasLength(2), reason: 'turn pertama tidak boleh hilang tertimpa');
+    expect((turns[0] as UserTurn).text, 'laper');
+    expect(turns[1], isA<MapoTurn>());
+    expect(chat.prompts, hasLength(1));
   });
 
   test('tanpa userId langsung ErrorTurn', () async {
