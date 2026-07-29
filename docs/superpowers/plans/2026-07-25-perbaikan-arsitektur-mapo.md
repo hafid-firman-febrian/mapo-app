@@ -16,7 +16,7 @@ Perbarui kolom ini setiap kali sebuah task selesai dan sudah diverifikasi.
 | 4 | Seam `MapoChat` | ✅ selesai | tidak |
 | 5 | Multi-turn `ChatSession` | 🟡 kode selesai, **Step 9 (verifikasi device) belum** | **ya** — Step 9 |
 | 6 | Loop tulis `meal_history` | ✅ selesai | tidak (sudah diverifikasi user di device — Riwayat ter-update tanpa hot restart) |
-| 7 | Loop tulis `UserPrefs` | ⬜ belum | **ya** — Step 12 |
+| 7 | Loop tulis `UserPrefs` | 🟡 kode selesai, **Step 12 (verifikasi device) belum** | **ya** — Step 12 |
 | 8 | `firestore.rules` | ⬜ belum | **ya** — Step 5 |
 | 9 | Cloud Function cuaca | ⬜ belum | **ya** — Step 11 |
 
@@ -1655,7 +1655,7 @@ git commit -m "feat: catat menu yang dipilih ke meal_history"
   - `final prefsProvider = FutureProvider<UserPrefs>`
   - `PrefsSheet` — `static Future<void> show(BuildContext context)`
 
-- [ ] **Step 1: Tambah `fake_cloud_firestore` sebagai dev dependency**
+- [x] **Step 1: Tambah `fake_cloud_firestore` sebagai dev dependency** (jalur bahagia — resolusi versi 4.2.0 cocok dengan `cloud_firestore ^6.7.1`, tidak perlu jalur fallback)
 
 Task ini butuh verifikasi penulisan Firestore yang sungguhan, jadi butuh Firestore palsu.
 
@@ -1684,7 +1684,7 @@ Run: `flutter pub get`
 
 (butuh `import 'package:mapo_app/models/user_prefs.dart';` dan parameter `history` pada `makeContainer` dari Task 6 Step 1). Penulisan Firestore yang sebenarnya lalu hanya diverifikasi manual di Step 12 — catat itu di commit message.
 
-- [ ] **Step 2: Tulis test yang gagal**
+- [x] **Step 2: Tulis test yang gagal**
 
 Buat `test/data/meal_history_service_test.dart`:
 
@@ -1757,13 +1757,13 @@ void main() {
 }
 ```
 
-- [ ] **Step 3: Jalankan test untuk memastikan gagal**
+- [x] **Step 3: Jalankan test untuk memastikan gagal**
 
 Run: `flutter test test/data/meal_history_service_test.dart`
 
 Expected: FAIL — `The method 'savePreferences' isn't defined for the class 'MealHistoryService'`.
 
-- [ ] **Step 4: Tambahkan `toDoc` dan pilihan ke `UserPrefs`**
+- [x] **Step 4: Tambahkan `toDoc` dan pilihan ke `UserPrefs`**
 
 Ganti seluruh isi `lib/models/user_prefs.dart`:
 
@@ -1810,7 +1810,7 @@ class UserPrefs {
 }
 ```
 
-- [ ] **Step 5: Tambahkan `savePreferences` ke service**
+- [x] **Step 5: Tambahkan `savePreferences` ke service**
 
 Di `lib/data/meal_history_service.dart`, tambahkan method ini setelah `getPreferences`:
 
@@ -1825,7 +1825,7 @@ Di `lib/data/meal_history_service.dart`, tambahkan method ini setelah `getPrefer
 
 `SetOptions` sudah tersedia dari import `cloud_firestore` di baris 1. `merge: true` wajib — tanpanya field lain di dokumen pengguna terhapus.
 
-- [ ] **Step 6: Lengkapi `FakeMealHistory` — kalau tidak, seluruh test rusak**
+- [x] **Step 6: Lengkapi `FakeMealHistory` — kalau tidak, seluruh test rusak** (`getPreferences` juga diubah agar mencerminkan `savedPrefs` — kalau tidak, test `savePrefs menyegarkan prefsProvider` gagal karena fake selalu mengembalikan `prefs` statis, bukan menguji refresh yang sebenarnya)
 
 Menambah method publik ke `MealHistoryService` **memutus** `FakeMealHistory implements MealHistoryService` di `test/domain/mapo_recommender_test.dart`, karena `implements` mewajibkan seluruh interface publik diimplementasikan. Ini bukan pilihan.
 
@@ -1840,13 +1840,13 @@ Tambahkan ke `class FakeMealHistory` di `test/domain/mapo_recommender_test.dart`
   }
 ```
 
-- [ ] **Step 7: Jalankan test untuk memastikan lulus**
+- [x] **Step 7: Jalankan test untuk memastikan lulus** (4 test baru PASS, seluruh test lain PASS)
 
 Run: `flutter test test/data/meal_history_service_test.dart && flutter test`
 
 Expected: 4 test baru PASS, dan seluruh test lain tetap PASS (bukti Step 6 memang diperlukan — coba hapus Step 6 dan `flutter test` akan gagal compile).
 
-- [ ] **Step 8: Tambahkan provider prefs**
+- [x] **Step 8: Tambahkan provider prefs** (`prefsProvider` sudah ada sebelum Task 7 ini dimulai — dibuat lebih dulu untuk `ProfilScreen` yang menampilkan preferensi read-only. Yang ditambahkan di sini cuma `ChatNotifier.savePrefs`, dengan `ref.invalidate(prefsProvider)` — pelajaran dari bug Task 6, jangan sampai preferensi juga basi sampai hot restart)
 
 Di `lib/providers/mapo_providers.dart`, tambahkan import:
 
@@ -1878,7 +1878,7 @@ Tambahkan method ini ke `class ChatNotifier`:
   }
 ```
 
-- [ ] **Step 9: Buat `PrefsSheet`**
+- [x] **Step 9: Buat `PrefsSheet`** (implementasi berbeda dari rencana tertulis: dibuat sebagai `PrefsEditSheet` di `lib/ui/widgets/prefs_edit_sheet.dart` — bukan `lib/ui/prefs_sheet.dart` — karena widget UI lain sudah dikonvensikan hidup di `lib/ui/widgets/`. Menerima `initial: UserPrefs` langsung dari pemanggil alih-alih mem-watch `prefsProvider` sendiri, karena pemanggilnya — `ProfilScreen` — sudah meresolusinya lebih dulu. Memakai `QuickReplyChip` yang sudah ada, bukan `ChoiceChip`/`FilterChip` Material polos, supaya konsisten dengan sistem desain (`AppColors`/`AppSpacing`/`AppText`) yang dipakai di seluruh redesain UI sejak plan ini ditulis)
 
 Buat `lib/ui/prefs_sheet.dart`:
 
@@ -1993,7 +1993,7 @@ class _PrefsSheetState extends ConsumerState<PrefsSheet> {
 }
 ```
 
-- [ ] **Step 10: Tambahkan tombol di AppBar**
+- [x] **Step 10: Tambahkan tombol di AppBar** (implementasi berbeda: `chat_screen.dart` versi sekarang tidak lagi punya AppBar biasa — dipakai `MapoHeader` kustom tanpa slot ikon tune, dan preferensi sudah punya rumah sendiri di `ProfilScreen` (bagian "PREFERENSI", read-only, ditambahkan di luar plan ini). Jadi tombol edit ditaruh di situ: ikon pensil kecil di sebelah label "PREFERENSI" yang memanggil `PrefsEditSheet.show(context, prefs)` — bukan ikon baru di `chat_screen.dart`)
 
 Di `lib/ui/chat_screen.dart`, tambahkan import:
 
@@ -2016,7 +2016,7 @@ Ganti `appBar:` (di dalam `Scaffold` pada `_ChatScreenState.build`):
       ),
 ```
 
-- [ ] **Step 11: Jalankan seluruh test dan analyze**
+- [x] **Step 11: Jalankan seluruh test dan analyze** (120 test PASS — termasuk test widget tambahan untuk `PrefsEditSheet` dan tombol ubah di `ProfilScreen` yang tidak ada di rencana tertulis — `No issues found!`)
 
 Run: `flutter test && flutter analyze`
 
@@ -2026,18 +2026,18 @@ Expected: semua PASS, `No issues found!`.
 
 Run: `flutter run --dart-define=WEATHER_API_KEY=<kunci_openweather_kamu>`
 
-1. Tekan ikon tune di AppBar, pilih budget `> 50.000` dan pantangan `tidak pedas`, tekan Simpan.
-2. Cek Firebase Console → Firestore → `users/{uid}`: `budget_range` dan `restrictions` harus terisi.
+1. Buka Profil (ikon di header chat), tekan ikon pensil di sebelah "PREFERENSI", pilih budget `> 50.000` dan pantangan `tidak pedas`, tekan Simpan.
+2. Cek Firebase Console → Firestore → `users/{uid}`: `budget_range` dan `restrictions` harus terisi. Layar Profil harus langsung menampilkan nilai baru tanpa perlu keluar-masuk (berkat `ref.invalidate(prefsProvider)`).
 3. **Restart app**, kirim pesan baru.
 4. Di log, cari baris `PREFS:`.
 
 Expected: `PREFS: > 50.000, [tidak pedas]` — bukan default. Rekomendasi yang datang juga harus menghormati pantangan itu.
 
-- [ ] **Step 13: Commit**
+- [x] **Step 13: Commit** (path disesuaikan dengan struktur aktual — lihat catatan Step 9/10)
 
 ```bash
-git add lib/models/user_prefs.dart lib/data/meal_history_service.dart lib/ui/prefs_sheet.dart lib/providers/mapo_providers.dart lib/ui/chat_screen.dart test/data/meal_history_service_test.dart pubspec.yaml pubspec.lock
-git commit -m "feat: layar preferensi dan jalur tulis UserPrefs"
+git add lib/models/user_prefs.dart lib/data/meal_history_service.dart lib/ui/widgets/prefs_edit_sheet.dart lib/ui/screens/profil_screen.dart lib/ui/debug/screens_gallery.dart lib/providers/mapo_providers.dart test/data/meal_history_service_test.dart test/domain/mapo_recommender_test.dart test/providers/chat_notifier_test.dart test/ui/screens/profil_screen_test.dart test/ui/widgets/prefs_edit_sheet_test.dart pubspec.yaml pubspec.lock docs/superpowers/plans/2026-07-25-perbaikan-arsitektur-mapo.md
+git commit -m "feat: layar edit preferensi dan jalur tulis UserPrefs"
 ```
 
 ---

@@ -7,6 +7,7 @@ import '../../themes/app_colors.dart';
 import '../../themes/app_spacing.dart';
 import '../../themes/app_text_styles.dart';
 import '../widgets/mapo_header.dart';
+import '../widgets/prefs_edit_sheet.dart';
 
 class ProfilScreen extends ConsumerWidget {
   const ProfilScreen({super.key});
@@ -42,6 +43,7 @@ class ProfilScreen extends ConsumerWidget {
               const SnackBar(content: Text('Masuk Google belum tersambung — segera hadir')),
             );
           },
+          onEditPrefs: () => PrefsEditSheet.show(context, prefs),
         ),
       ),
     );
@@ -53,6 +55,7 @@ class ProfilBody extends StatelessWidget {
   final bool isAnonymous;
   final UserPrefs prefs;
   final VoidCallback onGoogleSignInTap;
+  final VoidCallback onEditPrefs;
 
   const ProfilBody({
     super.key,
@@ -60,6 +63,7 @@ class ProfilBody extends StatelessWidget {
     required this.isAnonymous,
     required this.prefs,
     required this.onGoogleSignInTap,
+    required this.onEditPrefs,
   });
 
   @override
@@ -134,7 +138,30 @@ class ProfilBody extends StatelessWidget {
             ),
           ),
         const SizedBox(height: AppSpacing.md),
-        Text('PREFERENSI', style: AppText.caption.copyWith(letterSpacing: 1)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('PREFERENSI', style: AppText.caption.copyWith(letterSpacing: 1)),
+            Semantics(
+              label: 'Ubah preferensi',
+              button: true,
+              container: true,
+              excludeSemantics: true,
+              child: InkWell(
+                onTap: onEditPrefs,
+                borderRadius: AppRadius.rIconBox,
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedEdit02,
+                    color: AppColors.brandDark,
+                    size: AppSizes.iconSmall,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: AppSpacing.xs),
         _PrefRow(icon: HugeIcons.strokeRoundedWallet01, label: 'Budget biasa', value: prefs.budgetRange),
         _PrefRow(

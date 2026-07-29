@@ -179,4 +179,12 @@ class ChatNotifier extends Notifier<List<ChatTurn>> {
     // (hot restart).
     ref.invalidate(mealHistoryEntriesProvider);
   }
+
+  Future<void> savePrefs(UserPrefs prefs) async {
+    final userId = ref.read(currentUserIdProvider);
+    if (userId == null) return;
+
+    await ref.read(mealHistoryProvider).savePreferences(userId, prefs);
+    ref.invalidate(prefsProvider);
+  }
 }

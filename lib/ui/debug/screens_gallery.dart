@@ -44,6 +44,7 @@ class ScreensGallery extends StatelessWidget {
             isAnonymous: true,
             prefs: const UserPrefs(),
             onGoogleSignInTap: () {},
+            onEditPrefs: () {},
           ),
         ),
       ),

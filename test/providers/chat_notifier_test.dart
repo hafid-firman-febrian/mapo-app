@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mapo_app/domain/mapo_chat.dart';
 import 'package:mapo_app/models/chat_turn.dart';
 import 'package:mapo_app/models/mapo_response.dart';
+import 'package:mapo_app/models/user_prefs.dart';
 import 'package:mapo_app/providers/mapo_providers.dart';
 
 import '../domain/mapo_recommender_test.dart'
@@ -208,5 +209,28 @@ void main() {
           'baru (di device: sampai hot restart)',
     );
     expect(after.single.name, 'Bakso');
+  });
+
+  test('savePrefs meneruskan preferensi ke service dan menyegarkan prefsProvider', () async {
+    final history = FakeMealHistory();
+    final container = makeContainer(
+      chat: FakeMapoChat(jsonReply()),
+      history: history,
+    );
+    addTearDown(container.dispose);
+
+    final before = await container.read(prefsProvider.future);
+    expect(before.budgetRange, '15.000-25.000');
+
+    await container.read(chatProvider.notifier).savePrefs(
+      const UserPrefs(budgetRange: '> 50.000', restrictions: ['halal']),
+    );
+
+    expect(history.savedPrefs.single.budgetRange, '> 50.000');
+    expect(history.savedPrefs.single.restrictions, ['halal']);
+
+    final after = await container.read(prefsProvider.future);
+    expect(after.budgetRange, '> 50.000');
+    expect(after.restrictions, ['halal']);
   });
 }

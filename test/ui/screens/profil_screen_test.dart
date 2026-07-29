@@ -16,6 +16,7 @@ void main() {
               isAnonymous: true,
               prefs: const UserPrefs(budgetRange: '15.000-25.000', restrictions: []),
               onGoogleSignInTap: () {},
+              onEditPrefs: () {},
             ),
           ),
         ),
@@ -37,6 +38,7 @@ void main() {
               isAnonymous: false,
               prefs: const UserPrefs(),
               onGoogleSignInTap: () {},
+              onEditPrefs: () {},
             ),
           ),
         ),
@@ -54,6 +56,7 @@ void main() {
               isAnonymous: true,
               prefs: const UserPrefs(restrictions: ['halal', 'tidak pedas']),
               onGoogleSignInTap: () {},
+              onEditPrefs: () {},
             ),
           ),
         ),
@@ -72,12 +75,33 @@ void main() {
               isAnonymous: true,
               prefs: const UserPrefs(),
               onGoogleSignInTap: () => tapped = true,
+              onEditPrefs: () {},
             ),
           ),
         ),
       );
 
       await tester.tap(find.text('Masuk'));
+      expect(tapped, isTrue);
+    });
+
+    testWidgets('tap ikon ubah memanggil onEditPrefs', (tester) async {
+      var tapped = false;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ProfilBody(
+              displayName: 'Ammar',
+              isAnonymous: true,
+              prefs: const UserPrefs(),
+              onGoogleSignInTap: () {},
+              onEditPrefs: () => tapped = true,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.bySemanticsLabel('Ubah preferensi'));
       expect(tapped, isTrue);
     });
   });

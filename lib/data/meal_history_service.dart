@@ -36,6 +36,13 @@ class MealHistoryService {
     return UserPrefs.fromDoc(doc.data() ?? {});
   }
 
+  Future<void> savePreferences(String userId, UserPrefs prefs) async {
+    await _db
+        .collection('users')
+        .doc(userId)
+        .set(prefs.toDoc(), SetOptions(merge: true));
+  }
+
   Future<void> saveMeal(String userId, String name, String category) async {
     await _db.collection('users').doc(userId).collection('meal_history').add({
       'name': name,

@@ -33,6 +33,7 @@ class FakeMealHistory implements MealHistoryService {
   final List<String> recent;
   final UserPrefs prefs;
   final saved = <Map<String, String>>[];
+  final savedPrefs = <UserPrefs>[];
   int getMealHistoryCallCount = 0;
 
   FakeMealHistory({this.recent = const [], UserPrefs? prefs})
@@ -42,8 +43,16 @@ class FakeMealHistory implements MealHistoryService {
   Future<List<String>> getRecentMeals(String userId, {int limit = 3}) async =>
       recent;
 
+  /// Mencerminkan `savedPrefs` (kalau ada) supaya test bisa membuktikan
+  /// `prefsProvider` benar-benar dibaca ulang setelah `savePreferences`.
   @override
-  Future<UserPrefs> getPreferences(String userId) async => prefs;
+  Future<UserPrefs> getPreferences(String userId) async =>
+      savedPrefs.isEmpty ? prefs : savedPrefs.last;
+
+  @override
+  Future<void> savePreferences(String userId, UserPrefs prefs) async {
+    savedPrefs.add(prefs);
+  }
 
   @override
   Future<void> saveMeal(String userId, String name, String category) async {
