@@ -4,8 +4,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:mapo_app/firebase_options.dart';
 import 'package:mapo_app/themes/app_theme.dart';
+import 'package:mapo_app/ui/debug/screens_gallery.dart';
 import 'package:mapo_app/ui/screens/chat_screen.dart';
 
 void main() async {
@@ -37,7 +39,30 @@ class MapoApp extends StatelessWidget {
       title: 'MapoApp',
       theme: AppTheme.light,
       themeMode: ThemeMode.light,
-      home: const ChatScreen(),
+      routes: kDebugMode ? {'/debug': (context) => const ScreensGallery()} : const {},
+      home: kDebugMode ? const _DebugHome() : const ChatScreen(),
+    );
+  }
+}
+
+class _DebugHome extends StatelessWidget {
+  const _DebugHome();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        const ChatScreen(),
+        Positioned(
+          right: 16,
+          bottom: 88,
+          child: FloatingActionButton.small(
+            heroTag: 'debug-gallery-fab',
+            onPressed: () => Navigator.of(context).pushNamed('/debug'),
+            child: const HugeIcon(icon: HugeIcons.strokeRoundedIdea01, color: Colors.white),
+          ),
+        ),
+      ],
     );
   }
 }
