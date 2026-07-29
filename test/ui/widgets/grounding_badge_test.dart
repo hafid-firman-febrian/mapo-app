@@ -66,4 +66,21 @@ void main() {
 
     expect(find.textContaining('makan siang'), findsOneWidget);
   });
+
+  testWidgets('label dibawa lewat Semantics sebagai satu node (bukan dobel)', (tester) async {
+    final handle = tester.ensureSemantics();
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: GroundingBadge(contextUsed: ContextUsed(weather: 'hujan ringan')),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.bySemanticsLabel('dipilih karena cuaca hujan ringan'), findsOneWidget);
+
+    handle.dispose();
+  });
 }
