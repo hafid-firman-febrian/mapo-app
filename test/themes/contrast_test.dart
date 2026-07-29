@@ -30,7 +30,6 @@ double contrast(Color fg, Color bg) {
   return (math.max(a, b) + 0.05) / (math.min(a, b) + 0.05);
 }
 
-/// Komposit warna semi-transparan di atas latar opak.
 Color composite(Color overlay, Color base) {
   final a = overlay.a;
   return Color.from(

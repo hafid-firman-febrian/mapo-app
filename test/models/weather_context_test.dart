@@ -44,7 +44,6 @@ void main() {
   test('fromApi menandai payload rusak sebagai tidak diketahui', () {
     expect(WeatherContext.fromApi({}).isKnown, isFalse);
 
-    // Suhu ada, deskripsi hilang — tetap tidak diketahui.
     expect(
       WeatherContext.fromApi({
         'main': {'temp': 28},
@@ -52,7 +51,6 @@ void main() {
       isFalse,
     );
 
-    // Deskripsi ada, suhu hilang — tetap tidak diketahui.
     expect(
       WeatherContext.fromApi({
         'weather': [

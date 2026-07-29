@@ -46,7 +46,6 @@ class MapoRecommender {
     double? lat,
     double? lng,
   }) async {
-    // Kumpulkan konteks PARALEL — bukan berurutan
     final results = await Future.wait([
       (lat == null || lng == null)
           ? Future.value(WeatherContext.unknown())

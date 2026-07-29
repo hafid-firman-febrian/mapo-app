@@ -36,7 +36,6 @@ class WeatherService {
       return weather;
     } catch (e) {
       debugPrint('Error getting weather: $e');
-      // Cuaca gagal ≠ app mati
       return WeatherContext.unknown();
     }
   }

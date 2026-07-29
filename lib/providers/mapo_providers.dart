@@ -13,7 +13,6 @@ import '../models/chat_turn.dart';
 import '../models/meal_history_entry.dart';
 import '../models/user_prefs.dart';
 
-// ── Data layer ────────────────────────────────────────────
 final firestoreProvider = Provider((ref) => FirebaseFirestore.instance);
 
 final weatherServiceProvider = Provider(
@@ -36,7 +35,6 @@ final coordsProvider = FutureProvider<Coords?>((ref) async {
   }
 });
 
-// ── Domain layer ──────────────────────────────────────────
 const _systemInstruction =
     'Kamu Mapo, asisten yang membantu orang Indonesia memutuskan mau makan '
     'apa. Bicara santai, ramah, dan singkat. Kalau informasi dari user '
@@ -67,7 +65,6 @@ final recommenderProvider = Provider(
   ),
 );
 
-// ── Auth ──────────────────────────────────────────────────
 final firebaseAuthProvider = Provider<FirebaseAuth>(
   (ref) => FirebaseAuth.instance,
 );
@@ -107,7 +104,6 @@ final currentUserDisplayProvider = Provider<({String displayName, bool isAnonymo
   return (displayName: user?.displayName ?? 'Kamu', isAnonymous: user?.isAnonymous ?? true);
 });
 
-// ── Chat state ────────────────────────────────────────────
 final chatProvider = NotifierProvider<ChatNotifier, List<ChatTurn>>(
   ChatNotifier.new,
 );
