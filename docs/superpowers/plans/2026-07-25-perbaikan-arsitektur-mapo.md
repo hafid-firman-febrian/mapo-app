@@ -15,7 +15,7 @@ Perbarui kolom ini setiap kali sebuah task selesai dan sudah diverifikasi.
 | 3 | Pisahkan `LocationService` | 🟡 kode selesai, **Step 12 (verifikasi device) belum** | **ya** — Step 12 |
 | 4 | Seam `MapoChat` | ✅ selesai | tidak |
 | 5 | Multi-turn `ChatSession` | 🟡 kode selesai, **Step 9 (verifikasi device) belum** | **ya** — Step 9 |
-| 6 | Loop tulis `meal_history` | ⬜ belum | **ya** — Step 8 |
+| 6 | Loop tulis `meal_history` | 🟡 kode selesai, **Step 8 (verifikasi device) belum** | **ya** — Step 8 |
 | 7 | Loop tulis `UserPrefs` | ⬜ belum | **ya** — Step 12 |
 | 8 | `firestore.rules` | ⬜ belum | **ya** — Step 5 |
 | 9 | Cloud Function cuaca | ⬜ belum | **ya** — Step 11 |
@@ -1439,7 +1439,7 @@ Task ini menambahkan aksi "Aku makan ini" di kartu rekomendasi.
   - `ChatNotifier.pickMeal(Recommendation) → Future<void>`
   - `RecommendationCard({required Recommendation recommendation, VoidCallback? onPick})`
 
-- [ ] **Step 1: Tulis test yang gagal**
+- [x] **Step 1: Tulis test yang gagal**
 
 Tambahkan ke `test/providers/chat_notifier_test.dart` di dalam `void main()`. Test ini butuh akses ke fake yang sama, jadi ubah `makeContainer` agar menerima fake riwayat dari luar:
 
@@ -1511,13 +1511,13 @@ Tambahkan import `mapo_response.dart` di file test itu:
 import 'package:mapo_app/models/mapo_response.dart';
 ```
 
-- [ ] **Step 2: Jalankan test untuk memastikan gagal**
+- [x] **Step 2: Jalankan test untuk memastikan gagal**
 
 Run: `flutter test test/providers/chat_notifier_test.dart`
 
 Expected: FAIL — `The method 'pickMeal' isn't defined for the class 'ChatNotifier'`.
 
-- [ ] **Step 3: Tambahkan `pickMeal` ke `ChatNotifier`**
+- [x] **Step 3: Tambahkan `pickMeal` ke `ChatNotifier`**
 
 Di `lib/providers/mapo_providers.dart`, tambahkan method ini di dalam `class ChatNotifier`, setelah `ask`:
 
@@ -1536,13 +1536,13 @@ Di `lib/providers/mapo_providers.dart`, tambahkan method ini di dalam `class Cha
   }
 ```
 
-- [ ] **Step 4: Jalankan test untuk memastikan lulus**
+- [x] **Step 4: Jalankan test untuk memastikan lulus** (10 test PASS, bukan 8 — file sudah punya 2 test tambahan dari perbaikan a11y/sinkronisasi PendingTurn sejak plan ini ditulis)
 
 Run: `flutter test test/providers/chat_notifier_test.dart`
 
 Expected: 8 test PASS.
 
-- [ ] **Step 5: Tambahkan tombol di kartu rekomendasi**
+- [x] **Step 5: Tambahkan tombol di kartu rekomendasi** (sudah ada — `RecommendationCard` sudah mendapat parameter `onPick`, tombol "Makan ini", dan variant `hero`/`row` dari redesain UI yang terjadi setelah plan ini ditulis; tidak ada perubahan diperlukan di file ini)
 
 Di `lib/ui/widgets/recommendation_card.dart`, ubah deklarasi kelas (baris 4-6):
 
@@ -1574,7 +1574,7 @@ Lalu tambahkan tombol setelah blok `Wrap` (setelah baris 44, sebelum penutup `ch
             ],
 ```
 
-- [ ] **Step 6: Sambungkan di `ChatScreen`**
+- [x] **Step 6: Sambungkan di `ChatScreen`** (implementasi berbeda dari rencana tertulis — file sudah pindah ke `lib/ui/screens/chat_screen.dart` dan sudah punya `_pickMeal(context, recommendation)` yang dipanggil dari `onPick` di level `_ChatScreenState`, bukan dari `_ResponseView`/`ConsumerWidget`. Sebelum task ini, `_pickMeal` cuma menampilkan `SnackBar` tanpa menyimpan apa pun — komentar di kodenya secara eksplisit menyebut ini "Task 6 dari plan arsitektur, di luar scope". Perbaikannya: `_pickMeal` sekarang `await ref.read(chatProvider.notifier).pickMeal(recommendation)` dulu, baru tampilkan `SnackBar` setelah `context.mounted` dicek)
 
 `_ResponseView` perlu akses ke `ref`, jadi ubah dari `StatelessWidget` ke `ConsumerWidget` di `lib/ui/chat_screen.dart`:
 
@@ -1608,7 +1608,7 @@ Lalu di cabang `_ =>` pada `switch (response.responseType)`, sambungkan `onPick`
                 .toList(),
 ```
 
-- [ ] **Step 7: Jalankan seluruh test dan analyze**
+- [x] **Step 7: Jalankan seluruh test dan analyze** (112 test PASS, `No issues found!`)
 
 Run: `flutter test && flutter analyze`
 
@@ -1625,10 +1625,10 @@ Run: `flutter run --dart-define=WEATHER_API_KEY=<kunci_openweather_kamu>`
 
 Expected: baris log itu sekarang berisi nama menu yang kamu pilih, bukan `[]`. Inilah bukti loop-nya tertutup.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit** (path disesuaikan — `chat_screen.dart` sekarang di `lib/ui/screens/`, dan `recommendation_card.dart` tidak ikut ter-commit karena sudah punya `onPick` sebelum task ini)
 
 ```bash
-git add lib/ui/widgets/recommendation_card.dart lib/providers/mapo_providers.dart lib/ui/chat_screen.dart test/providers/chat_notifier_test.dart
+git add lib/providers/mapo_providers.dart lib/ui/screens/chat_screen.dart test/providers/chat_notifier_test.dart docs/superpowers/plans/2026-07-25-perbaikan-arsitektur-mapo.md
 git commit -m "feat: catat menu yang dipilih ke meal_history"
 ```
 

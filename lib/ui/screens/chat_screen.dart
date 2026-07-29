@@ -60,12 +60,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
-  /// "Makan ini" belum tersambung ke Firestore — itu Task 6 dari plan
-  /// arsitektur, di luar scope plan ini. Tanpa handler ini sama sekali,
-  /// RecommendationCard's onPick jadi null dan tombol "Makan ini" — CTA
-  /// utama menurut style guide — akan tampil disabled/abu-abu. SnackBar
-  /// ini kasih umpan balik nyata tanpa berpura-pura sudah tersimpan permanen.
-  void _pickMeal(BuildContext context, Recommendation recommendation) {
+  Future<void> _pickMeal(BuildContext context, Recommendation recommendation) async {
+    await ref.read(chatProvider.notifier).pickMeal(recommendation);
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Oke, ${recommendation.name} dicatat!')),
     );

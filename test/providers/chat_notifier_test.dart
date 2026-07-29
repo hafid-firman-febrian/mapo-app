@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mapo_app/domain/mapo_chat.dart';
 import 'package:mapo_app/models/chat_turn.dart';
+import 'package:mapo_app/models/mapo_response.dart';
 import 'package:mapo_app/providers/mapo_providers.dart';
 
 import '../domain/mapo_recommender_test.dart'
@@ -11,13 +12,14 @@ void main() {
   ProviderContainer makeContainer({
     required MapoChat chat,
     String? userId = 'u1',
+    FakeMealHistory? history,
   }) {
     return ProviderContainer(
       overrides: [
         mapoChatProvider.overrideWithValue(chat),
         currentUserIdProvider.overrideWithValue(userId),
         weatherServiceProvider.overrideWithValue(FakeWeatherService()),
-        mealHistoryProvider.overrideWithValue(FakeMealHistory()),
+        mealHistoryProvider.overrideWithValue(history ?? FakeMealHistory()),
       ],
     );
   }
@@ -133,5 +135,48 @@ void main() {
     await container.read(chatProvider.notifier).ask('laper');
 
     expect(container.read(chatProvider).last, isA<ErrorTurn>());
+  });
+
+  test('pickMeal menyimpan menu ke riwayat', () async {
+    final history = FakeMealHistory();
+    final container = makeContainer(
+      chat: FakeMapoChat(jsonReply(name: 'Bakso')),
+      history: history,
+    );
+    addTearDown(container.dispose);
+
+    await container.read(chatProvider.notifier).ask('laper');
+    final picked = (container.read(chatProvider).last as MapoTurn)
+        .response
+        .recommendations
+        .single;
+    await container.read(chatProvider.notifier).pickMeal(picked);
+
+    expect(history.saved, hasLength(1));
+    expect(history.saved.single['name'], 'Bakso');
+    expect(history.saved.single['category'], 'berkuah');
+  });
+
+  test('pickMeal tanpa userId tidak menyimpan apa pun', () async {
+    final history = FakeMealHistory();
+    final container = makeContainer(
+      chat: FakeMapoChat(jsonReply()),
+      userId: null,
+      history: history,
+    );
+    addTearDown(container.dispose);
+
+    await container.read(chatProvider.notifier).pickMeal(
+      const Recommendation(
+        name: 'Bakso',
+        reason: 'anget',
+        category: 'berkuah',
+        priceEstimate: 15000,
+        spiceLevel: 'sedang',
+        prepTime: 'cepat',
+      ),
+    );
+
+    expect(history.saved, isEmpty);
   });
 }

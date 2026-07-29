@@ -161,4 +161,15 @@ class ChatNotifier extends Notifier<List<ChatTurn>> {
       _inFlight = false;
     }
   }
+
+  /// Menutup loop data: tanpa ini `meal_history` selamanya kosong dan
+  /// `getRecentMeals` tidak punya apa pun untuk dikembalikan.
+  Future<void> pickMeal(Recommendation recommendation) async {
+    final userId = ref.read(currentUserIdProvider);
+    if (userId == null) return;
+
+    await ref
+        .read(mealHistoryProvider)
+        .saveMeal(userId, recommendation.name, recommendation.category);
+  }
 }
