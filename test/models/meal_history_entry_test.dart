@@ -36,6 +36,12 @@ void main() {
       expect(entry.name, '');
       expect(entry.category, 'nasi');
     });
+
+    test('eaten_at hilang tidak throw', () {
+      final entry = MealHistoryEntry.fromDoc({'name': 'Bakso', 'category': 'berkuah'});
+
+      expect(entry.eatenAt, DateTime.fromMillisecondsSinceEpoch(0));
+    });
   });
 
   group('MealHistoryStats.fromEntries', () {

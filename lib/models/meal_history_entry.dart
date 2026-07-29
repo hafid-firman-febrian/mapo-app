@@ -16,7 +16,8 @@ class MealHistoryEntry {
   factory MealHistoryEntry.fromDoc(Map<String, dynamic> data) => MealHistoryEntry(
         name: data['name'] as String? ?? '',
         category: data['category'] as String? ?? 'nasi',
-        eatenAt: (data['eaten_at'] as Timestamp).toDate(),
+        eatenAt: (data['eaten_at'] as Timestamp?)?.toDate() ??
+            DateTime.fromMillisecondsSinceEpoch(0),
         price: (data['price'] as num?)?.toInt(),
       );
 }
