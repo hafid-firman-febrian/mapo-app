@@ -41,6 +41,37 @@ void main() {
     expect(w.temperature, 0);
   });
 
+  test('fromApi menandai payload rusak sebagai tidak diketahui', () {
+    expect(WeatherContext.fromApi({}).isKnown, isFalse);
+
+    // Suhu ada, deskripsi hilang — tetap tidak diketahui.
+    expect(
+      WeatherContext.fromApi({
+        'main': {'temp': 28},
+      }).isKnown,
+      isFalse,
+    );
+
+    // Deskripsi ada, suhu hilang — tetap tidak diketahui.
+    expect(
+      WeatherContext.fromApi({
+        'weather': [
+          {'description': 'hujan ringan'},
+        ],
+      }).isKnown,
+      isFalse,
+    );
+  });
+
+  test('fromCache menandai data tidak lengkap sebagai tidak diketahui', () {
+    expect(WeatherContext.fromCache({}).isKnown, isFalse);
+    expect(
+      WeatherContext.fromCache({'description': 'hujan lebat'}).isKnown,
+      isFalse,
+    );
+    expect(WeatherContext.fromCache({'temperature': 26}).isKnown, isFalse);
+  });
+
   test('fromCache menerima suhu bulat dari Firestore', () {
     final w = WeatherContext.fromCache({
       'description': 'hujan lebat',
