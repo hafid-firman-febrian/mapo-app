@@ -15,7 +15,7 @@ Perbarui kolom ini setiap kali sebuah task selesai dan sudah diverifikasi.
 | 3 | Pisahkan `LocationService` | 🟡 kode selesai, **Step 12 (verifikasi device) belum** | **ya** — Step 12 |
 | 4 | Seam `MapoChat` | ✅ selesai | tidak |
 | 5 | Multi-turn `ChatSession` | 🟡 kode selesai, **Step 9 (verifikasi device) belum** | **ya** — Step 9 |
-| 6 | Loop tulis `meal_history` | 🟡 kode selesai, **Step 8 (verifikasi device) belum** | **ya** — Step 8 |
+| 6 | Loop tulis `meal_history` | ✅ selesai | tidak (sudah diverifikasi user di device — Riwayat ter-update tanpa hot restart) |
 | 7 | Loop tulis `UserPrefs` | ⬜ belum | **ya** — Step 12 |
 | 8 | `firestore.rules` | ⬜ belum | **ya** — Step 5 |
 | 9 | Cloud Function cuaca | ⬜ belum | **ya** — Step 11 |
@@ -1614,7 +1614,7 @@ Run: `flutter test && flutter analyze`
 
 Expected: semua PASS, `No issues found!`.
 
-- [ ] **Step 8: Verifikasi manual loop tulis-baca** (verifikasi pertama menemukan bug: SnackBar muncul dan data tersimpan, tapi layar Riwayat tidak menampilkan menu baru sampai hot restart. Penyebab: `mealHistoryEntriesProvider` — `FutureProvider` yang sudah punya listener aktif dari drawer/ChatScreen — tidak pernah di-invalidate setelah `saveMeal`. Sudah diperbaiki: `pickMeal` sekarang memanggil `ref.invalidate(mealHistoryEntriesProvider)` setelah menyimpan. Checklist di bawah masih perlu diulang di device untuk konfirmasi final.)
+- [x] **Step 8: Verifikasi manual loop tulis-baca** (verifikasi pertama menemukan bug: SnackBar muncul dan data tersimpan, tapi layar Riwayat tidak menampilkan menu baru sampai hot restart. Penyebab: `mealHistoryEntriesProvider` — `FutureProvider` yang sudah punya listener aktif dari drawer/ChatScreen — tidak pernah di-invalidate setelah `saveMeal`. Diperbaiki dengan `ref.invalidate(mealHistoryEntriesProvider)` di `pickMeal` (commit `d2dd356`). User mengonfirmasi Riwayat sekarang ter-update tanpa hot restart.)
 
 Run: `flutter run --dart-define=WEATHER_API_KEY=<kunci_openweather_kamu>`
 
