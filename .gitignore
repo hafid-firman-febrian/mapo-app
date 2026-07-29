@@ -50,3 +50,6 @@ app.*.map.json
 # Plan dan spec kerja — bukan bagian dari sejarah kode, jangan pernah dicommit
 docs/superpowers/plans/
 docs/superpowers/specs/
+
+# Berisi WEATHER_API_KEY dalam bentuk plaintext — jangan pernah dicommit
+.vscode/launch.json
