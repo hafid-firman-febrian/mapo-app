@@ -1,5 +1,6 @@
+import 'dart:ui' show Tristate;
+
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mapo_app/ui/widgets/quick_reply_chip.dart';
 
@@ -29,7 +30,7 @@ void main() {
     );
 
     final semantics = tester.getSemantics(find.byType(QuickReplyChip));
-    expect(semantics.hasFlag(SemanticsFlag.isSelected), isTrue);
+    expect(semantics.flagsCollection.isSelected, Tristate.isTrue);
   });
 
   testWidgets('Semantics tidak selected secara default', (tester) async {
@@ -42,6 +43,6 @@ void main() {
     );
 
     final semantics = tester.getSemantics(find.byType(QuickReplyChip));
-    expect(semantics.hasFlag(SemanticsFlag.isSelected), isFalse);
+    expect(semantics.flagsCollection.isSelected, Tristate.isFalse);
   });
 }
