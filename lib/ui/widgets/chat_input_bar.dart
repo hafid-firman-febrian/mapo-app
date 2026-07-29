@@ -31,22 +31,25 @@ class ChatInputBar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: TextField(
-              controller: controller,
-              enabled: enabled,
-              style: AppText.bodyLarge,
-              textInputAction: TextInputAction.send,
-              decoration: InputDecoration(
-                hintText: enabled ? 'Lagi pengen apa?' : 'Tunggu sebentar...',
-                fillColor: enabled ? null : AppColors.line,
+            child: Opacity(
+              opacity: enabled ? 1.0 : 0.6,
+              child: TextField(
+                controller: controller,
+                enabled: enabled,
+                style: AppText.bodyLarge,
+                textInputAction: TextInputAction.send,
+                decoration: InputDecoration(
+                  hintText: enabled ? 'Lagi pengen apa?' : 'Tunggu sebentar...',
+                ),
+                onSubmitted: enabled ? (_) => _submit() : null,
               ),
-              onSubmitted: enabled ? (_) => _submit() : null,
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
           Semantics(
             label: 'Kirim pesan',
             button: true,
+            enabled: enabled,
             container: true,
             excludeSemantics: true,
             child: SizedBox(

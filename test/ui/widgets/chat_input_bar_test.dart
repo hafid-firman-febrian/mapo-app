@@ -87,4 +87,20 @@ void main() {
 
     expect(sent, 'pengen yang pedas');
   });
+
+  testWidgets('tap tombol kirim saat disabled tidak memanggil onSend', (tester) async {
+    final controller = TextEditingController(text: 'laper');
+    var called = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ChatInputBar(controller: controller, onSend: (_) => called = true, enabled: false),
+        ),
+      ),
+    );
+
+    await tester.tap(find.bySemanticsLabel('Kirim pesan'));
+    expect(called, isFalse);
+  });
 }
