@@ -5,6 +5,7 @@ import 'package:firebase_ai/firebase_ai.dart';
 import '../data/weather_service.dart';
 import '../data/meal_history_service.dart';
 import '../data/location_service.dart';
+import '../data/auth_service.dart';
 import '../domain/mapo_chat.dart';
 import '../domain/mapo_recommender.dart';
 import '../domain/mapo_schema.dart';
@@ -69,8 +70,16 @@ final firebaseAuthProvider = Provider<FirebaseAuth>(
   (ref) => FirebaseAuth.instance,
 );
 
+/// `userChanges()`, bukan `authStateChanges()` — yang terakhir cuma emit
+/// saat sign-in/sign-out beneran, tidak emit saat akun anonim di-link ke
+/// Google (UID sama, cuma provider-nya nambah). Tanpa ini,
+/// currentUserDisplayProvider tidak ter-update setelah link sukses.
 final authStateProvider = StreamProvider<User?>(
-  (ref) => ref.watch(firebaseAuthProvider).authStateChanges(),
+  (ref) => ref.watch(firebaseAuthProvider).userChanges(),
+);
+
+final authServiceProvider = Provider<AuthService>(
+  (ref) => AuthService(ref.watch(firebaseAuthProvider)),
 );
 
 /// Dibaca sinkron dari `currentUser` (main() sudah `await signInAnonymously()`
