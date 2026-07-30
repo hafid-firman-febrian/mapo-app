@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hugeicons/hugeicons.dart';
+import '../../data/auth_service.dart';
 import '../../models/user_prefs.dart';
 import '../../providers/mapo_providers.dart';
 import '../../themes/app_colors.dart';
@@ -9,11 +10,50 @@ import '../../themes/app_text_styles.dart';
 import '../widgets/mapo_header.dart';
 import '../widgets/prefs_edit_sheet.dart';
 
-class ProfilScreen extends ConsumerWidget {
+class ProfilScreen extends ConsumerStatefulWidget {
   const ProfilScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfilScreen> createState() => _ProfilScreenState();
+}
+
+class _ProfilScreenState extends ConsumerState<ProfilScreen> {
+  bool _busy = false;
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _busy = true);
+    try {
+      await ref.read(authServiceProvider).linkOrSignInWithGoogle();
+    } on GoogleSignInCancelledException {
+      // User membatalkan picker — diam saja, bukan error.
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal masuk, coba lagi ya')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _handleSignOut() async {
+    setState(() => _busy = true);
+    try {
+      await ref.read(authServiceProvider).signOut();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal keluar, coba lagi ya')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final prefsAsync = ref.watch(prefsProvider);
     final userDisplay = ref.watch(currentUserDisplayProvider);
 
@@ -38,11 +78,9 @@ class ProfilScreen extends ConsumerWidget {
           displayName: userDisplay.displayName,
           isAnonymous: userDisplay.isAnonymous,
           prefs: prefs,
-          onGoogleSignInTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Masuk Google belum tersambung — segera hadir')),
-            );
-          },
+          busy: _busy,
+          onGoogleSignInTap: _handleGoogleSignIn,
+          onSignOutTap: _handleSignOut,
           onEditPrefs: () => PrefsEditSheet.show(context, prefs),
         ),
       ),
@@ -55,7 +93,9 @@ class ProfilBody extends StatelessWidget {
   final bool isAnonymous;
   final UserPrefs prefs;
   final VoidCallback onGoogleSignInTap;
+  final VoidCallback onSignOutTap;
   final VoidCallback onEditPrefs;
+  final bool busy;
 
   const ProfilBody({
     super.key,
@@ -63,7 +103,9 @@ class ProfilBody extends StatelessWidget {
     required this.isAnonymous,
     required this.prefs,
     required this.onGoogleSignInTap,
+    required this.onSignOutTap,
     required this.onEditPrefs,
+    this.busy = false,
   });
 
   @override
@@ -121,13 +163,8 @@ class ProfilBody extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Latar `blueDark`, bukan `blue`: putih di atas `blue` cuma
-                // 4.16:1 (di bawah AA 4.5:1) dan `ink` di atas `blue` malah
-                // lebih buruk (3.37:1). `blueDark` + putih = 6.22:1, dan tetap
-                // biru — sama seperti Rule B yang memakai `tone.dark` sebagai
-                // varian yang lolos kontras.
                 ElevatedButton(
-                  onPressed: onGoogleSignInTap,
+                  onPressed: busy ? null : onGoogleSignInTap,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.blueDark,
                     foregroundColor: Colors.white,
@@ -135,6 +172,14 @@ class ProfilBody extends StatelessWidget {
                   child: const Text('Masuk'),
                 ),
               ],
+            ),
+          )
+        else
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: busy ? null : onSignOutTap,
+              child: const Text('Keluar'),
             ),
           ),
         const SizedBox(height: AppSpacing.md),
