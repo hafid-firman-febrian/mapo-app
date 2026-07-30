@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -62,7 +63,10 @@ class FakeMealHistory implements MealHistoryService {
   /// Mencerminkan `saved` supaya test bisa membuktikan `mealHistoryEntriesProvider`
   /// benar-benar dibaca ulang setelah `saveMeal`, bukan cuma cek jumlah panggilan.
   @override
-  Future<List<MealHistoryEntry>> getMealHistory(String userId, {int limit = 20}) async {
+  Future<List<MealHistoryEntry>> getMealHistory(
+    String userId, {
+    int limit = 20,
+  }) async {
     getMealHistoryCallCount++;
     return saved
         .map(
@@ -87,6 +91,14 @@ class FakeMapoChat implements MapoChat {
     prompts.add(text);
     return reply;
   }
+}
+
+/// Mensimulasikan model yang tidak pernah membalas — `Future` yang sengaja
+/// tidak pernah di-complete. Membuktikan `MapoRecommender.reply` tidak
+/// menunggu selamanya kalau `MapoChat` macet.
+class HangingMapoChat implements MapoChat {
+  @override
+  Future<String?> send(String text) => Completer<String?>().future;
 }
 
 String jsonReply({String name = 'Soto Ayam'}) => jsonEncode({
@@ -214,5 +226,23 @@ void main() {
     );
 
     expect(chat.prompts.single, 'berkuah');
+  });
+
+  test('model yang tidak pernah membalas melempar MapoException, bukan menunggu selamanya', () async {
+    final recommender = MapoRecommender(
+      FakeWeatherService(),
+      FakeMealHistory(),
+      HangingMapoChat(),
+      replyTimeout: const Duration(milliseconds: 50),
+    );
+
+    await expectLater(
+      () => recommender.reply(
+        userId: 'u1',
+        userMessage: 'laper',
+        withContext: true,
+      ),
+      throwsA(isA<MapoException>()),
+    );
   });
 }

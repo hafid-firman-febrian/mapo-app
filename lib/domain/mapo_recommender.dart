@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:flutter/foundation.dart';
 import '../data/weather_service.dart';
 import '../data/meal_history_service.dart';
@@ -11,8 +12,15 @@ class MapoRecommender {
   final WeatherService _weather;
   final MealHistoryService _history;
   final MapoChat _chat;
+  final Duration _replyTimeout;
 
-  MapoRecommender(this._weather, this._history, this._chat);
+  MapoRecommender(
+    this._weather,
+    this._history,
+    this._chat, {
+    Duration replyTimeout = const Duration(seconds: 25),
+    // ignore: prefer_initializing_formals
+  }) : _replyTimeout = replyTimeout;
 
   /// [withContext] hanya `true` di turn pertama. [MapoChat] menyimpan riwayat
   /// sendiri, jadi mengirim ulang blok konteks tiap turn cuma buang token dan
@@ -29,7 +37,13 @@ class MapoRecommender {
               '\n\nPesan user: "$userMessage"'
         : userMessage;
 
-    final raw = await _chat.send(prompt);
+    final raw = await _chat
+        .send(prompt)
+        .timeout(
+          _replyTimeout,
+          onTimeout: () =>
+              throw MapoException('Mapo kelamaan mikir, coba lagi ya'),
+        );
     if (raw == null || raw.isEmpty) {
       throw MapoException('Respons kosong dari model');
     }
@@ -57,7 +71,7 @@ class MapoRecommender {
     final weather = results[0] as WeatherContext;
     final recentMeals = results[1] as List<String>;
     final prefs = results[2] as UserPrefs;
-
+    log('WEATHER: ${results[0]}, ${weather.temperature}°C');
     debugPrint('WEATHER: ${weather.description}, ${weather.temperature}°C');
     debugPrint('RECENT MEALS: $recentMeals');
     debugPrint('PREFS: ${prefs.budgetRange}, ${prefs.restrictions}');
