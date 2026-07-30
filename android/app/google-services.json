@@ -12,7 +12,20 @@
           "package_name": "com.example.mapo_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "169082720857-tk2fdfhom2vp8hb5mp7vg3s2rvqsspt0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.mapo_app",
+            "certificate_hash": "d8bce8fda7e778ef25b94dddf901c80167fec71e"
+          }
+        },
+        {
+          "client_id": "169082720857-eliif939c7gt35ia60r1883467sfincc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBmBTKVOwCl1NaMcHyX6oY28tCzpr4OQL0"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "169082720857-eliif939c7gt35ia60r1883467sfincc.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "169082720857-m7k8im1kh74ngcusvsn7q8levnlqftlm.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.mapoApp"
+              }
+            }
+          ]
         }
       }
     }

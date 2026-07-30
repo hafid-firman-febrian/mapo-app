@@ -46,6 +46,7 @@ dependencies:
   flutter_riverpod: ^3.3.2
   hugeicons: ^1.1.7
   google_fonts: ^8.2.0
+  google_sign_in: ^7.2.0
 
 dev_dependencies:
   flutter_test:
