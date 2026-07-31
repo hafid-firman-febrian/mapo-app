@@ -187,7 +187,7 @@ class ChatNotifier extends Notifier<List<ChatTurn>> {
       if (session != _session) return;
       state = [...history, const ErrorTurn('Mapo lagi bingung, coba lagi ya')];
     } finally {
-      _inFlight = false;
+      if (session == _session) _inFlight = false;
     }
   }
 

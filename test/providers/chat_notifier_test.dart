@@ -19,6 +19,18 @@ class _PendingMapoChat implements MapoChat {
   Future<String?> send(String text) => completer.future;
 }
 
+/// Mengosongkan antrean microtask/macrotask berkali-kali supaya `ask()` yang
+/// sedang jalan maju sejauh mungkin — sampai ke titik dia betul-betul
+/// menunggu sebuah `Completer` yang belum di-complete manual (mis. coords,
+/// context block, lalu `_chat.send()`). Tidak akan pernah "menyelesaikan"
+/// completer yang memang sengaja dibiarkan pending; cuma meng-flush kerja
+/// async lain yang sudah bisa selesai sendiri.
+Future<void> _flush() async {
+  for (var i = 0; i < 20; i++) {
+    await Future<void>(() {});
+  }
+}
+
 void main() {
   ProviderContainer makeContainer({
     required MapoChat chat,
@@ -164,6 +176,55 @@ void main() {
     await askFuture;
 
     expect(container.read(chatProvider), isEmpty);
+  });
+
+  test('_inFlight tidak ikut ke-reset oleh respons basi dari sesi lama', () async {
+    final completerA = Completer<String?>();
+    final chatA = _PendingMapoChat(completerA);
+    final container = makeContainer(chat: chatA, userId: 'u1');
+    addTearDown(container.dispose);
+
+    final askA = container.read(chatProvider.notifier).ask('pesan A');
+    // Biarkan askA maju sampai betul-betul terhenti di chatA.send() (yaitu
+    // completerA), bukan cuma sampai di await pertama. Tanpa ini,
+    // recommenderProvider yang baru di-invalidate oleh override di bawah
+    // bisa telanjur "ke-baca ulang" oleh kelanjutan askA sendiri dan malah
+    // ikut terikat ke chatB — bukan bug yang mau diuji.
+    await _flush();
+
+    final completerB = Completer<String?>();
+    final chatB = _PendingMapoChat(completerB);
+    container.updateOverrides([
+      mapoChatProvider.overrideWithValue(chatB),
+      currentUserIdProvider.overrideWithValue('u2'),
+      weatherServiceProvider.overrideWithValue(FakeWeatherService()),
+      mealHistoryProvider.overrideWithValue(FakeMealHistory()),
+    ]);
+    container.read(chatProvider); // paksa build() rerun sebelum lanjut
+
+    final askB = container.read(chatProvider.notifier).ask('pesan B');
+    await _flush(); // biarkan askB maju sampai terhenti di chatB.send()
+
+    // Respons basi dari sesi lama (u1) datang belakangan.
+    completerA.complete(jsonReply(name: 'Basi'));
+    await askA;
+
+    // Kalau _inFlight salah ke-reset oleh selesainya A, ask ketiga ini akan
+    // ikut jalan (guard _inFlight jebol) dan bisa balapan menimpa state B.
+    // Seharusnya diabaikan karena B masih in-flight.
+    final askC = container
+        .read(chatProvider.notifier)
+        .ask('pesan C, seharusnya diabaikan');
+    await _flush();
+
+    completerB.complete(jsonReply(name: 'Bakso'));
+    await askB;
+    await askC;
+
+    final turns = container.read(chatProvider);
+    expect(turns, hasLength(2));
+    expect((turns[0] as UserTurn).text, 'pesan B');
+    expect((turns[1] as MapoTurn).response.recommendations.single.name, 'Bakso');
   });
 
   test('tanpa userId langsung ErrorTurn', () async {
