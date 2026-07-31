@@ -257,7 +257,7 @@ void main() {
           overrides: [
             chatProvider.overrideWith(() => _FixedChatNotifier(const [])),
             coordsProvider.overrideWith((ref) async => null),
-            currentUserDisplayProvider.overrideWithValue((displayName: 'Ammar', isAnonymous: true)),
+            currentUserDisplayProvider.overrideWithValue((displayName: 'Ammar', isAnonymous: true, email: null)),
             mealHistoryEntriesProvider.overrideWith((ref) async => []),
           ],
           child: const MaterialApp(home: ChatScreen()),

@@ -230,7 +230,7 @@ void main() {
               (ref) async => const UserPrefs(budgetRange: '> 50.000', restrictions: ['halal']),
             ),
             currentUserDisplayProvider.overrideWithValue(
-              (displayName: 'Ammar', isAnonymous: true),
+              (displayName: 'Ammar', isAnonymous: true, email: null),
             ),
             authServiceProvider.overrideWithValue(FakeAuthService()),
           ],
@@ -251,7 +251,7 @@ void main() {
           overrides: [
             prefsProvider.overrideWith((ref) async => const UserPrefs()),
             currentUserDisplayProvider.overrideWithValue(
-              (displayName: 'Ammar', isAnonymous: true),
+              (displayName: 'Ammar', isAnonymous: true, email: null),
             ),
             authServiceProvider.overrideWithValue(fake),
           ],
@@ -273,7 +273,7 @@ void main() {
           overrides: [
             prefsProvider.overrideWith((ref) async => const UserPrefs()),
             currentUserDisplayProvider.overrideWithValue(
-              (displayName: 'Ammar', isAnonymous: true),
+              (displayName: 'Ammar', isAnonymous: true, email: null),
             ),
             authServiceProvider.overrideWithValue(fake),
           ],
@@ -295,7 +295,7 @@ void main() {
           overrides: [
             prefsProvider.overrideWith((ref) async => const UserPrefs()),
             currentUserDisplayProvider.overrideWithValue(
-              (displayName: 'Ammar', isAnonymous: true),
+              (displayName: 'Ammar', isAnonymous: true, email: null),
             ),
             authServiceProvider.overrideWithValue(fake),
           ],
@@ -317,7 +317,7 @@ void main() {
           overrides: [
             prefsProvider.overrideWith((ref) async => const UserPrefs()),
             currentUserDisplayProvider.overrideWithValue(
-              (displayName: 'Ammar', isAnonymous: false),
+              (displayName: 'Ammar', isAnonymous: false, email: null),
             ),
             authServiceProvider.overrideWithValue(fake),
           ],
@@ -339,7 +339,7 @@ void main() {
           overrides: [
             prefsProvider.overrideWith((ref) async => const UserPrefs()),
             currentUserDisplayProvider.overrideWithValue(
-              (displayName: 'Ammar', isAnonymous: false),
+              (displayName: 'Ammar', isAnonymous: false, email: null),
             ),
             authServiceProvider.overrideWithValue(fake),
           ],
