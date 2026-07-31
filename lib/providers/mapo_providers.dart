@@ -121,11 +121,19 @@ final chatProvider = NotifierProvider<ChatNotifier, List<ChatTurn>>(
 );
 
 class ChatNotifier extends Notifier<List<ChatTurn>> {
+  Object? _session;
+
   @override
   List<ChatTurn> build() {
     // Watch supaya daftar turn direset saat UID berubah — login Google atau
     // sign out sebelumnya meninggalkan riwayat percakapan akun lama.
     ref.watch(currentUserIdProvider);
+    // Token baru tiap kali UID berubah: request ask() yang sudah in-flight
+    // dari sesi lama jadi basi dan tidak boleh lagi menulis ke state di
+    // bawah ini. Reset _inFlight juga di sini (bukan cuma di finally ask())
+    // supaya sesi baru tidak ikut terblokir menunggu request basi selesai.
+    _session = Object();
+    _inFlight = false;
     return const [];
   }
 
@@ -147,6 +155,7 @@ class ChatNotifier extends Notifier<List<ChatTurn>> {
     if (_inFlight) return;
 
     final userId = ref.read(currentUserIdProvider);
+    final session = _session;
     final history = [...state, UserTurn(message)];
 
     if (userId == null) {
@@ -169,10 +178,13 @@ class ChatNotifier extends Notifier<List<ChatTurn>> {
             lat: coords?.lat,
             lng: coords?.lng,
           );
+      if (session != _session) return; // sesi sudah ganti — buang respons basi
       state = [...history, MapoTurn(response)];
     } on MapoException catch (e) {
+      if (session != _session) return;
       state = [...history, ErrorTurn(e.message)];
     } catch (_) {
+      if (session != _session) return;
       state = [...history, const ErrorTurn('Mapo lagi bingung, coba lagi ya')];
     } finally {
       _inFlight = false;

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mapo_app/domain/mapo_chat.dart';
@@ -8,6 +10,14 @@ import 'package:mapo_app/providers/mapo_providers.dart';
 
 import '../domain/mapo_recommender_test.dart'
     show FakeMapoChat, FakeMealHistory, FakeWeatherService, jsonReply;
+
+class _PendingMapoChat implements MapoChat {
+  final Completer<String?> completer;
+  _PendingMapoChat(this.completer);
+
+  @override
+  Future<String?> send(String text) => completer.future;
+}
 
 void main() {
   ProviderContainer makeContainer({
@@ -124,6 +134,36 @@ void main() {
     expect((turns[0] as UserTurn).text, 'laper');
     expect(turns[1], isA<MapoTurn>());
     expect(chat.prompts, hasLength(1));
+  });
+
+  test('UID berganti saat ask() masih menunggu tidak menimpa state dengan respons basi', () async {
+    final completer = Completer<String?>();
+    final chat = _PendingMapoChat(completer);
+    final container = makeContainer(chat: chat, userId: 'u1');
+    addTearDown(container.dispose);
+
+    final askFuture = container.read(chatProvider.notifier).ask('laper');
+
+    // Simulasikan UID berganti (sign out/switch akun) sebelum Gemini membalas.
+    container.updateOverrides([
+      mapoChatProvider.overrideWithValue(chat),
+      currentUserIdProvider.overrideWithValue('u2'),
+      weatherServiceProvider.overrideWithValue(FakeWeatherService()),
+      mealHistoryProvider.overrideWithValue(FakeMealHistory()),
+    ]);
+    // Riverpod cuma menandai chatProvider "dirty" di sini, build() tidak
+    // otomatis dijalankan ulang sampai ada yang membaca provider ini lagi.
+    // Di app asli, ChatScreen yang men-watch chatProvider selalu melakukan
+    // pembacaan itu dalam sekejap. Tanpa baris ini, dirty flag baru
+    // ke-flush oleh `expect` di bawah — yaitu SETELAH tulisan basi terjadi —
+    // sehingga build() ke-2 itu kebetulan menimpa balik korupsinya dan
+    // membuat test ini lolos meski bug-nya masih ada.
+    container.read(chatProvider);
+
+    completer.complete(jsonReply());
+    await askFuture;
+
+    expect(container.read(chatProvider), isEmpty);
   });
 
   test('tanpa userId langsung ErrorTurn', () async {
