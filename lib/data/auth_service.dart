@@ -51,12 +51,25 @@ class AuthService {
       rethrow;
     }
 
-    final credential = GoogleAuthProvider.credential(
-      idToken: account.authentication.idToken,
-    );
+    final idToken = account.authentication.idToken;
+    if (idToken == null) {
+      throw StateError(
+        'Google tidak mengembalikan idToken — cek serverClientId di Firebase Console',
+      );
+    }
+    final credential = GoogleAuthProvider.credential(idToken: idToken);
+
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      // Tidak ada sesi anonim untuk di-link (mis. signOut() sebelumnya gagal
+      // membuat sesi anonim baru) — sign-in langsung sebagai fallback aman,
+      // supaya tombol "Masuk" tetap bisa memulihkan app tanpa restart.
+      await _auth.signInWithCredential(credential);
+      return;
+    }
 
     try {
-      await _auth.currentUser!.linkWithCredential(credential);
+      await currentUser.linkWithCredential(credential);
     } on FirebaseAuthException catch (e) {
       if (isCredentialConflict(e.code)) {
         await _auth.signInWithCredential(credential);
@@ -70,6 +83,7 @@ class AuthService {
   /// lagi — app tidak boleh pernah dalam keadaan currentUser == null
   /// selagi berjalan (spec §Keputusan desain #2).
   Future<void> signOut() async {
+    await _ensureInitialized();
     await _googleSignIn.signOut();
     await _auth.signOut();
     await _auth.signInAnonymously();

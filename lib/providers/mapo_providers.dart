@@ -54,9 +54,12 @@ final generativeModelProvider = Provider<GenerativeModel>(
   ),
 );
 
-final mapoChatProvider = Provider<MapoChat>(
-  (ref) => FirebaseMapoChat(ref.watch(generativeModelProvider).startChat()),
-);
+final mapoChatProvider = Provider<MapoChat>((ref) {
+  // Watch supaya ChatSession baru dibuat (riwayat sisi-model direset) saat
+  // UID berubah — login Google atau sign out.
+  ref.watch(currentUserIdProvider);
+  return FirebaseMapoChat(ref.watch(generativeModelProvider).startChat());
+});
 
 final recommenderProvider = Provider(
   (ref) => MapoRecommender(
@@ -119,7 +122,12 @@ final chatProvider = NotifierProvider<ChatNotifier, List<ChatTurn>>(
 
 class ChatNotifier extends Notifier<List<ChatTurn>> {
   @override
-  List<ChatTurn> build() => const [];
+  List<ChatTurn> build() {
+    // Watch supaya daftar turn direset saat UID berubah — login Google atau
+    // sign out sebelumnya meninggalkan riwayat percakapan akun lama.
+    ref.watch(currentUserIdProvider);
+    return const [];
+  }
 
   bool get _isFirstTurn => state.whereType<MapoTurn>().isEmpty;
 
