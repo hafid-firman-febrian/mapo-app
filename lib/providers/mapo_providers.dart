@@ -93,7 +93,9 @@ final currentUserIdProvider = Provider<String?>((ref) {
   return ref.watch(firebaseAuthProvider).currentUser?.uid;
 });
 
-final mealHistoryEntriesProvider = FutureProvider<List<MealHistoryEntry>>((ref) async {
+final mealHistoryEntriesProvider = FutureProvider<List<MealHistoryEntry>>((
+  ref,
+) async {
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return [];
   return ref.watch(mealHistoryProvider).getMealHistory(userId);
@@ -110,11 +112,27 @@ final prefsProvider = FutureProvider<UserPrefs>((ref) async {
 /// `authStateProvider` diwatch supaya provider ini benar-benar ikut invalidasi
 /// saat auth berubah — tanpa itu klaim "sama seperti currentUserIdProvider"
 /// bohong, dan nama user bakal ketinggalan begitu Google Sign-In asli masuk.
-final currentUserDisplayProvider = Provider<({String displayName, bool isAnonymous})>((ref) {
-  ref.watch(authStateProvider);
-  final user = ref.watch(firebaseAuthProvider).currentUser;
-  return (displayName: user?.displayName ?? 'Kamu', isAnonymous: user?.isAnonymous ?? true);
-});
+final currentUserDisplayProvider =
+    Provider<({String displayName, bool isAnonymous, String? email})>((ref) {
+      ref.watch(authStateProvider);
+      final user = ref.watch(firebaseAuthProvider).currentUser;
+      final displayName =
+          user?.displayName ??
+          user?.providerData
+              .where((p) => p.providerId == 'google.com')
+              .map((p) => p.displayName)
+              .firstWhere(
+                (n) => n != null && n.isNotEmpty,
+                orElse: () => null,
+              ) ??
+          user?.email ??
+          'Kamu';
+      return (
+        displayName: displayName,
+        isAnonymous: user?.isAnonymous ?? true,
+        email: user?.email,
+      );
+    });
 
 final chatProvider = NotifierProvider<ChatNotifier, List<ChatTurn>>(
   ChatNotifier.new,

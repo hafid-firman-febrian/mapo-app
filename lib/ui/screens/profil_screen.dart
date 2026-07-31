@@ -71,7 +71,10 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
         error: (_, _) => Center(
           child: Padding(
             padding: AppSpacing.screenPad,
-            child: Text('Mapo lagi bingung, coba lagi ya', style: AppText.bodyLarge),
+            child: Text(
+              'Mapo lagi bingung, coba lagi ya',
+              style: AppText.bodyLarge,
+            ),
           ),
         ),
         data: (prefs) => ProfilBody(
@@ -79,6 +82,7 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
           isAnonymous: userDisplay.isAnonymous,
           prefs: prefs,
           busy: _busy,
+          email: userDisplay.email,
           onGoogleSignInTap: _handleGoogleSignIn,
           onSignOutTap: _handleSignOut,
           onEditPrefs: () => PrefsEditSheet.show(context, prefs),
@@ -90,6 +94,7 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
 
 class ProfilBody extends StatelessWidget {
   final String displayName;
+  final String? email;
   final bool isAnonymous;
   final UserPrefs prefs;
   final VoidCallback onGoogleSignInTap;
@@ -106,6 +111,7 @@ class ProfilBody extends StatelessWidget {
     required this.onSignOutTap,
     required this.onEditPrefs,
     this.busy = false,
+    this.email,
   });
 
   @override
@@ -119,7 +125,10 @@ class ProfilBody extends StatelessWidget {
               Container(
                 width: AppSizes.iconBoxLarge,
                 height: AppSizes.iconBoxLarge,
-                decoration: const BoxDecoration(color: AppColors.brandFill, shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                  color: AppColors.brandFill,
+                  shape: BoxShape.circle,
+                ),
                 child: Center(
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedUserCircle,
@@ -130,8 +139,12 @@ class ProfilBody extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(displayName, style: AppText.title),
+              if (email != null) Text(email ?? '', style: AppText.bodyLarge),
+
               Text(
-                isAnonymous ? 'Anonim · belum tersimpan' : 'Tersimpan dengan Google',
+                isAnonymous
+                    ? 'Anonim · belum tersimpan'
+                    : 'Tersimpan dengan Google',
                 style: AppText.bodyMedium,
               ),
             ],
@@ -141,7 +154,10 @@ class ProfilBody extends StatelessWidget {
         if (isAnonymous)
           Container(
             padding: AppSpacing.cardPadSmall,
-            decoration: BoxDecoration(color: AppColors.blueFill, borderRadius: AppRadius.rCardSmall),
+            decoration: BoxDecoration(
+              color: AppColors.blueFill,
+              borderRadius: AppRadius.rCardSmall,
+            ),
             child: Row(
               children: [
                 Expanded(
@@ -158,7 +174,9 @@ class ProfilBody extends StatelessWidget {
                       ),
                       Text(
                         'Masuk Google biar gak hilang',
-                        style: AppText.caption.copyWith(color: AppColors.blueDark),
+                        style: AppText.caption.copyWith(
+                          color: AppColors.blueDark,
+                        ),
                       ),
                     ],
                   ),
@@ -186,7 +204,10 @@ class ProfilBody extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('PREFERENSI', style: AppText.caption.copyWith(letterSpacing: 1)),
+            Text(
+              'PREFERENSI',
+              style: AppText.caption.copyWith(letterSpacing: 1),
+            ),
             Semantics(
               label: 'Ubah preferensi',
               button: true,
@@ -208,11 +229,17 @@ class ProfilBody extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.xs),
-        _PrefRow(icon: HugeIcons.strokeRoundedWallet01, label: 'Budget biasa', value: prefs.budgetRange),
+        _PrefRow(
+          icon: HugeIcons.strokeRoundedWallet01,
+          label: 'Budget biasa',
+          value: prefs.budgetRange,
+        ),
         _PrefRow(
           icon: HugeIcons.strokeRoundedFire,
           label: 'Pantangan',
-          value: prefs.restrictions.isEmpty ? 'tidak ada' : prefs.restrictions.join(', '),
+          value: prefs.restrictions.isEmpty
+              ? 'tidak ada'
+              : prefs.restrictions.join(', '),
         ),
       ],
     );
@@ -224,7 +251,11 @@ class _PrefRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _PrefRow({required this.icon, required this.label, required this.value});
+  const _PrefRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -232,10 +263,17 @@ class _PrefRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Row(
         children: [
-          HugeIcon(icon: icon, color: AppColors.inkSoft, size: AppSizes.iconMedium),
+          HugeIcon(
+            icon: icon,
+            color: AppColors.inkSoft,
+            size: AppSizes.iconMedium,
+          ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(child: Text(label, style: AppText.bodyLarge)),
-          Text(value, style: AppText.bodyMedium.copyWith(color: AppColors.inkSoft)),
+          Text(
+            value,
+            style: AppText.bodyMedium.copyWith(color: AppColors.inkSoft),
+          ),
         ],
       ),
     );
