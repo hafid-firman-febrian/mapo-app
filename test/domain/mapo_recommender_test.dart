@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:firebase_ai/firebase_ai.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mapo_app/data/meal_history_service.dart';
 import 'package:mapo_app/data/weather_service.dart';
@@ -99,6 +100,13 @@ class FakeMapoChat implements MapoChat {
 class HangingMapoChat implements MapoChat {
   @override
   Future<String?> send(String text) => Completer<String?>().future;
+}
+
+/// Mensimulasikan Gemini API menolak request karena kuota/rate limit habis.
+class QuotaExceededMapoChat implements MapoChat {
+  @override
+  Future<String?> send(String text) =>
+      throw QuotaExceeded('Quota exceeded for quota metric ...');
 }
 
 String jsonReply({String name = 'Soto Ayam'}) => jsonEncode({
@@ -243,6 +251,29 @@ void main() {
         withContext: true,
       ),
       throwsA(isA<MapoException>()),
+    );
+  });
+
+  test('QuotaExceeded dari model melempar MapoException dengan pesan kuota', () async {
+    final recommender = MapoRecommender(
+      FakeWeatherService(),
+      FakeMealHistory(),
+      QuotaExceededMapoChat(),
+    );
+
+    await expectLater(
+      () => recommender.reply(
+        userId: 'u1',
+        userMessage: 'laper',
+        withContext: true,
+      ),
+      throwsA(
+        isA<MapoException>().having(
+          (e) => e.message,
+          'message',
+          contains('kebanjiran'),
+        ),
+      ),
     );
   });
 }

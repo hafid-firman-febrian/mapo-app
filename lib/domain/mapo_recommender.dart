@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:firebase_ai/firebase_ai.dart';
 import 'package:flutter/foundation.dart';
 import '../data/weather_service.dart';
 import '../data/meal_history_service.dart';
@@ -37,13 +38,20 @@ class MapoRecommender {
               '\n\nPesan user: "$userMessage"'
         : userMessage;
 
-    final raw = await _chat
-        .send(prompt)
-        .timeout(
-          _replyTimeout,
-          onTimeout: () =>
-              throw MapoException('Mapo kelamaan mikir, coba lagi ya'),
-        );
+    final String? raw;
+    try {
+      raw = await _chat
+          .send(prompt)
+          .timeout(
+            _replyTimeout,
+            onTimeout: () =>
+                throw MapoException('Mapo kelamaan mikir, coba lagi ya'),
+          );
+    } on QuotaExceeded {
+      throw MapoException(
+        'Mapo lagi kebanjiran request, coba lagi beberapa saat lagi ya',
+      );
+    }
     if (raw == null || raw.isEmpty) {
       throw MapoException('Respons kosong dari model');
     }
