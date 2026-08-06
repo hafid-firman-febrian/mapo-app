@@ -214,4 +214,22 @@ void main() {
     expect(_iconOf(tester), HugeIcons.strokeRoundedSnow);
     expect(_fillColorOf(tester), CategoryTone.blue.fill);
   });
+
+  testWidgets('icon dan teks selalu pakai AppColors.ink, terlepas dari tone', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: GroundingBadge(contextUsed: ContextUsed(basedOnHistory: true)),
+        ),
+      ),
+    );
+
+    // basedOnHistory pakai CategoryTone.amber — sebelum fix, icon/teks
+    // memakai tone.dark (brandDark) yang gagal kontras 4.5:1 di atas fill-nya.
+    final icon = tester.widget<HugeIcon>(find.byType(HugeIcon));
+    expect(icon.color, AppColors.ink);
+
+    final text = tester.widget<Text>(find.byType(Text));
+    expect(text.style?.color, AppColors.ink);
+  });
 }

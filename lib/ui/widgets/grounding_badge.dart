@@ -75,7 +75,7 @@ class GroundingBadge extends StatelessWidget {
           children: [
             HugeIcon(
               icon: visual.icon,
-              color: visual.tone.dark,
+              color: AppColors.ink,
               size: AppSizes.iconSmall,
             ),
             const SizedBox(width: AppSpacing.xs / 2),
@@ -83,7 +83,7 @@ class GroundingBadge extends StatelessWidget {
               child: Text(
                 visual.label,
                 style: AppText.caption.copyWith(
-                  color: visual.tone.dark,
+                  color: AppColors.ink,
                   fontWeight: FontWeight.w600,
                 ),
                 overflow: TextOverflow.ellipsis,
