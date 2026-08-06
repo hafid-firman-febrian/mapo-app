@@ -10,48 +10,62 @@ class GroundingBadge extends StatelessWidget {
 
   const GroundingBadge({super.key, this.contextUsed});
 
-  String? get _label {
+  ({List<List<dynamic>> icon, String label, CategoryTone tone})? get _visual {
     final ctx = contextUsed;
     if (ctx == null) return null;
     if (ctx.weather != null && ctx.weather!.isNotEmpty) {
-      return 'dipilih karena cuaca ${ctx.weather}';
+      return (
+        icon: HugeIcons.strokeRoundedCloud,
+        label: 'dipilih karena cuaca ${ctx.weather}',
+        tone: CategoryTone.blue,
+      );
     }
-    if (ctx.basedOnHistory) return 'dipilih berdasarkan riwayat kamu';
+    if (ctx.basedOnHistory) {
+      return (
+        icon: HugeIcons.strokeRoundedClock01,
+        label: 'dipilih berdasarkan riwayat kamu',
+        tone: CategoryTone.amber,
+      );
+    }
     if (ctx.timeOfDay != null && ctx.timeOfDay!.isNotEmpty) {
-      return 'pas buat ${ctx.timeOfDay!.replaceAll('_', ' ')}';
+      return (
+        icon: HugeIcons.strokeRoundedTime01,
+        label: 'pas buat ${ctx.timeOfDay!.replaceAll('_', ' ')}',
+        tone: CategoryTone.green,
+      );
     }
     return null;
   }
 
   @override
   Widget build(BuildContext context) {
-    final label = _label;
-    if (label == null) return const SizedBox.shrink();
+    final visual = _visual;
+    if (visual == null) return const SizedBox.shrink();
 
     return Semantics(
-      label: label,
+      label: visual.label,
       container: true,
       excludeSemantics: true,
       child: Container(
         padding: AppSpacing.badgePad,
         decoration: BoxDecoration(
-          color: AppColors.blueFill,
+          color: visual.tone.fill,
           borderRadius: AppRadius.rBadge,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             HugeIcon(
-              icon: HugeIcons.strokeRoundedCloud,
-              color: AppColors.blueDark,
+              icon: visual.icon,
+              color: visual.tone.dark,
               size: AppSizes.iconSmall,
             ),
             const SizedBox(width: AppSpacing.xs / 2),
             Flexible(
               child: Text(
-                label,
+                visual.label,
                 style: AppText.caption.copyWith(
-                  color: AppColors.blueDark,
+                  color: visual.tone.dark,
                   fontWeight: FontWeight.w600,
                 ),
                 overflow: TextOverflow.ellipsis,
