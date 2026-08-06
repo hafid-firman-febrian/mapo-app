@@ -59,6 +59,15 @@ enum CategoryTone {
   final Color fill;
 }
 
+extension CategoryToneButton on CategoryTone {
+  ({Color fill, Color text}) get cardButton => switch (this) {
+    CategoryTone.blue => (fill: AppColors.green, text: AppColors.ink),
+    CategoryTone.green => (fill: AppColors.blueDark, text: Colors.white),
+    CategoryTone.red => (fill: AppColors.brand, text: AppColors.ink),
+    CategoryTone.amber => (fill: AppColors.redDark, text: Colors.white),
+  };
+}
+
 CategoryTone categoryTone(String category) {
   switch (category) {
     case 'pedas':

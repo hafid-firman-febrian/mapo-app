@@ -4,6 +4,17 @@ import 'app_colors.dart';
 import 'app_text_styles.dart';
 import 'app_spacing.dart';
 
+class AppButtonStyles {
+  AppButtonStyles._();
+  static ButtonStyle onCard(CategoryTone tone) {
+    final pair = tone.cardButton;
+    return ElevatedButton.styleFrom(
+      backgroundColor: pair.fill,
+      foregroundColor: pair.text,
+    );
+  }
+}
+
 class AppTheme {
   AppTheme._();
 
@@ -11,10 +22,7 @@ class AppTheme {
     final scheme = ColorScheme.fromSeed(
       seedColor: AppColors.brand,
       brightness: Brightness.light,
-    ).copyWith(
-      surface: AppColors.paper,
-      onSurface: AppColors.ink,
-    );
+    ).copyWith(surface: AppColors.paper, onSurface: AppColors.ink);
 
     return ThemeData(
       useMaterial3: true,

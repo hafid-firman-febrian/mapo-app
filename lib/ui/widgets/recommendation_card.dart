@@ -4,6 +4,7 @@ import '../../models/mapo_response.dart';
 import '../../themes/app_colors.dart';
 import '../../themes/app_spacing.dart';
 import '../../themes/app_text_styles.dart';
+import '../../themes/app_theme.dart';
 import '../../utils/currency.dart';
 
 enum RecommendationCardVariant { hero, row }
@@ -56,6 +57,7 @@ class _RecommendationCardState extends State<RecommendationCard> {
           child: isHero
               ? _HeroContent(
                   recommendation: widget.recommendation,
+                  tone: tone,
                   onPick: widget.onPick,
                   onRetry: widget.onRetry,
                 )
@@ -68,7 +70,10 @@ class _RecommendationCardState extends State<RecommendationCard> {
     // banner, bukan pesan chat. Row (Options) sengaja tidak dibatasi, tetap
     // ikut lebar list seperti daftar pilihan biasa.
     if (!isHero) return card;
-    return ConstrainedBox(constraints: const BoxConstraints(maxWidth: 480), child: card);
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 480),
+      child: card,
+    );
   }
 }
 
@@ -83,7 +88,7 @@ class _ScrimText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 6),
+      padding: AppSpacing.cardPadSmall,
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(AppRadius.iconBox),
@@ -94,18 +99,24 @@ class _ScrimText extends StatelessWidget {
 }
 
 List<String> _tags(Recommendation r) => [
-      r.category,
-      if (r.spiceLevel != 'tidak_pedas') r.spiceLevel.replaceAll('_', ' '),
-      r.prepTime,
-      ...r.tags,
-    ];
+  r.category,
+  if (r.spiceLevel != 'tidak_pedas') r.spiceLevel.replaceAll('_', ' '),
+  r.prepTime,
+  ...r.tags,
+];
 
 class _HeroContent extends StatelessWidget {
   final Recommendation recommendation;
+  final CategoryTone tone;
   final VoidCallback? onPick;
   final VoidCallback? onRetry;
 
-  const _HeroContent({required this.recommendation, this.onPick, this.onRetry});
+  const _HeroContent({
+    required this.recommendation,
+    required this.tone,
+    this.onPick,
+    this.onRetry,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -123,7 +134,10 @@ class _HeroContent extends StatelessWidget {
             child: Container(
               width: 120,
               height: 120,
-              decoration: BoxDecoration(color: AppColors.overlayCircle, shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                color: AppColors.overlayCircle,
+                shape: BoxShape.circle,
+              ),
             ),
           ),
           Column(
@@ -133,9 +147,16 @@ class _HeroContent extends StatelessWidget {
               Container(
                 width: AppSizes.iconBoxLarge,
                 height: AppSizes.iconBoxLarge,
-                decoration: BoxDecoration(color: AppColors.overlayIcon, borderRadius: AppRadius.rIconBox),
+                decoration: BoxDecoration(
+                  color: AppColors.overlayIcon,
+                  borderRadius: AppRadius.rIconBox,
+                ),
                 child: Center(
-                  child: HugeIcon(icon: categoryIcon(r.category), color: Colors.white, size: AppSizes.iconLarge),
+                  child: HugeIcon(
+                    icon: categoryIcon(r.category),
+                    color: Colors.white,
+                    size: AppSizes.iconLarge,
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
@@ -170,7 +191,12 @@ class _HeroContent extends StatelessWidget {
                                   color: Colors.black.withValues(alpha: 0.15),
                                   borderRadius: AppRadius.rBadge,
                                 ),
-                                child: Text(t, style: AppText.caption.copyWith(color: Colors.white)),
+                                child: Text(
+                                  t,
+                                  style: AppText.caption.copyWith(
+                                    color: Colors.white,
+                                  ),
+                                ),
                               ),
                             )
                             .toList(),
@@ -185,13 +211,7 @@ class _HeroContent extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: onPick,
-                      // Teks `ink` di atas `brand` = 6.90:1. Putih di atas
-                      // `brand` cuma 2.03:1 — pasangan yang sudah ditolak
-                      // Accessibility Rule C waktu memperbaiki judul MapoHeader.
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.brand,
-                        foregroundColor: AppColors.ink,
-                      ),
+                      style: AppButtonStyles.onCard(tone),
                       child: const Text('Makan ini'),
                     ),
                   ),
@@ -207,7 +227,9 @@ class _HeroContent extends StatelessWidget {
                         height: 48,
                         child: IconButton(
                           onPressed: onRetry,
-                          style: IconButton.styleFrom(backgroundColor: AppColors.overlayIcon),
+                          style: IconButton.styleFrom(
+                            backgroundColor: AppColors.overlayIcon,
+                          ),
                           icon: HugeIcon(
                             icon: HugeIcons.strokeRoundedRefresh,
                             color: Colors.white,
@@ -242,9 +264,16 @@ class _RowContent extends StatelessWidget {
           Container(
             width: AppSizes.iconBoxSmall,
             height: AppSizes.iconBoxSmall,
-            decoration: BoxDecoration(color: AppColors.overlayIcon, borderRadius: AppRadius.rIconBox),
+            decoration: BoxDecoration(
+              color: AppColors.overlayIcon,
+              borderRadius: AppRadius.rIconBox,
+            ),
             child: Center(
-              child: HugeIcon(icon: categoryIcon(r.category), color: Colors.white, size: AppSizes.iconMedium),
+              child: HugeIcon(
+                icon: categoryIcon(r.category),
+                color: Colors.white,
+                size: AppSizes.iconMedium,
+              ),
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
@@ -279,7 +308,10 @@ class _RowContent extends StatelessWidget {
                   const SizedBox(width: AppSpacing.xs),
                   Text(
                     'Rp${formatRupiah(r.priceEstimate)}',
-                    style: AppText.bodyMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+                    style: AppText.bodyMedium.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
