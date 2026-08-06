@@ -134,4 +134,84 @@ void main() {
     expect(_iconOf(tester), HugeIcons.strokeRoundedTime01);
     expect(_fillColorOf(tester), CategoryTone.green.fill);
   });
+
+  testWidgets('cuaca cerah pakai icon Sun01 dan tone amber', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: GroundingBadge(contextUsed: ContextUsed(weather: 'cerah')),
+        ),
+      ),
+    );
+
+    expect(_iconOf(tester), HugeIcons.strokeRoundedSun01);
+    expect(_fillColorOf(tester), CategoryTone.amber.fill);
+  });
+
+  testWidgets('cuaca hujan pakai icon CloudAngledRain dan tone biru', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: GroundingBadge(contextUsed: ContextUsed(weather: 'hujan ringan')),
+        ),
+      ),
+    );
+
+    expect(_iconOf(tester), HugeIcons.strokeRoundedCloudAngledRain);
+    expect(_fillColorOf(tester), CategoryTone.blue.fill);
+  });
+
+  testWidgets('cuaca gerimis pakai icon CloudAngledRain dan tone biru', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: GroundingBadge(contextUsed: ContextUsed(weather: 'gerimis')),
+        ),
+      ),
+    );
+
+    expect(_iconOf(tester), HugeIcons.strokeRoundedCloudAngledRain);
+    expect(_fillColorOf(tester), CategoryTone.blue.fill);
+  });
+
+  testWidgets('cuaca badai petir pakai icon CloudAngledRainZap dan tone merah', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: GroundingBadge(contextUsed: ContextUsed(weather: 'badai petir')),
+        ),
+      ),
+    );
+
+    expect(_iconOf(tester), HugeIcons.strokeRoundedCloudAngledRainZap);
+    expect(_fillColorOf(tester), CategoryTone.red.fill);
+  });
+
+  testWidgets('cuaca hujan lebat disertai petir pakai icon storm, bukan rain', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: GroundingBadge(
+            contextUsed: ContextUsed(weather: 'hujan lebat disertai petir'),
+          ),
+        ),
+      ),
+    );
+
+    expect(_iconOf(tester), HugeIcons.strokeRoundedCloudAngledRainZap);
+    expect(_fillColorOf(tester), CategoryTone.red.fill);
+  });
+
+  testWidgets('cuaca salju pakai icon Snow dan tone biru', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: GroundingBadge(contextUsed: ContextUsed(weather: 'salju ringan')),
+        ),
+      ),
+    );
+
+    expect(_iconOf(tester), HugeIcons.strokeRoundedSnow);
+    expect(_fillColorOf(tester), CategoryTone.blue.fill);
+  });
 }

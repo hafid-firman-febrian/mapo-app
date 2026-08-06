@@ -14,10 +14,11 @@ class GroundingBadge extends StatelessWidget {
     final ctx = contextUsed;
     if (ctx == null) return null;
     if (ctx.weather != null && ctx.weather!.isNotEmpty) {
+      final (icon, tone) = _weatherVisual(ctx.weather!);
       return (
-        icon: HugeIcons.strokeRoundedCloud,
+        icon: icon,
         label: 'dipilih karena cuaca ${ctx.weather}',
-        tone: CategoryTone.blue,
+        tone: tone,
       );
     }
     if (ctx.basedOnHistory) {
@@ -35,6 +36,23 @@ class GroundingBadge extends StatelessWidget {
       );
     }
     return null;
+  }
+
+  (List<List<dynamic>>, CategoryTone) _weatherVisual(String description) {
+    final d = description.toLowerCase();
+    if (d.contains('petir') || d.contains('badai') || d.contains('guntur')) {
+      return (HugeIcons.strokeRoundedCloudAngledRainZap, CategoryTone.red);
+    }
+    if (d.contains('salju')) {
+      return (HugeIcons.strokeRoundedSnow, CategoryTone.blue);
+    }
+    if (d.contains('hujan') || d.contains('gerimis') || d.contains('rintik')) {
+      return (HugeIcons.strokeRoundedCloudAngledRain, CategoryTone.blue);
+    }
+    if (d.contains('cerah') || d.contains('panas') || d.contains('terik')) {
+      return (HugeIcons.strokeRoundedSun01, CategoryTone.amber);
+    }
+    return (HugeIcons.strokeRoundedCloud, CategoryTone.blue);
   }
 
   @override
