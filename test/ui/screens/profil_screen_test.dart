@@ -172,8 +172,8 @@ void main() {
         ),
       );
 
-      final button = tester.widget<TextButton>(
-        find.widgetWithText(TextButton, 'Keluar'),
+      final button = tester.widget<ElevatedButton>(
+        find.widgetWithText(ElevatedButton, 'Keluar'),
       );
       expect(button.onPressed, isNull);
     });
@@ -328,6 +328,13 @@ void main() {
 
       await tester.tap(find.text('Keluar'));
       await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Keluar'),
+        ),
+      );
+      await tester.pumpAndSettle();
 
       expect(fake.signOutCalls, 1);
     });
@@ -350,8 +357,71 @@ void main() {
 
       await tester.tap(find.text('Keluar'));
       await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Keluar'),
+        ),
+      );
+      await tester.pumpAndSettle();
 
       expect(find.text('Gagal keluar, coba lagi ya'), findsOneWidget);
+    });
+
+    testWidgets('tap Keluar di dalam dialog menutup dialognya', (tester) async {
+      final fake = FakeAuthService();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            prefsProvider.overrideWith((ref) async => const UserPrefs()),
+            currentUserDisplayProvider.overrideWithValue(
+              (displayName: 'Ammar', isAnonymous: false, email: null),
+            ),
+            authServiceProvider.overrideWithValue(fake),
+          ],
+          child: const MaterialApp(home: ProfilScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Keluar'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsOneWidget);
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Keluar'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+    });
+
+    testWidgets('tap Batal tidak memanggil AuthService.signOut', (tester) async {
+      final fake = FakeAuthService();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            prefsProvider.overrideWith((ref) async => const UserPrefs()),
+            currentUserDisplayProvider.overrideWithValue(
+              (displayName: 'Ammar', isAnonymous: false, email: null),
+            ),
+            authServiceProvider.overrideWithValue(fake),
+          ],
+          child: const MaterialApp(home: ProfilScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Keluar'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Batal'));
+      await tester.pumpAndSettle();
+
+      expect(fake.signOutCalls, 0);
+      expect(find.byType(AlertDialog), findsNothing);
     });
   });
 }

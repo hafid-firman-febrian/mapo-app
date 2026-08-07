@@ -38,7 +38,7 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
   }
 
   Future<void> _handleSignOut() async {
-    showDialog(
+    final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.paper,
@@ -46,7 +46,7 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
         content: Text('Apakah kamu yakin ingin keluar?'),
         actions: [
           ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(context).pop(false),
             child: Text('Batal'),
           ),
           ElevatedButton(
@@ -54,25 +54,27 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
               backgroundColor: AppColors.red,
               foregroundColor: Colors.white,
             ),
-            onPressed: () async {
-              setState(() => _busy = true);
-              try {
-                await ref.read(authServiceProvider).signOut();
-              } catch (_) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Gagal keluar, coba lagi ya')),
-                  );
-                }
-              } finally {
-                if (mounted) setState(() => _busy = false);
-              }
-            },
+            onPressed: () => Navigator.of(context).pop(true),
             child: Text('Keluar'),
           ),
         ],
       ),
     );
+
+    if (ok != true) return;
+
+    setState(() => _busy = true);
+    try {
+      await ref.read(authServiceProvider).signOut();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal keluar, coba lagi ya')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   @override
