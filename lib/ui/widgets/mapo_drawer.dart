@@ -4,7 +4,7 @@ import '../../themes/app_colors.dart';
 import '../../themes/app_spacing.dart';
 import '../../themes/app_text_styles.dart';
 
-enum MapoDrawerItem { cariMakan, riwayat, favorit, pengaturan }
+enum MapoDrawerItem { cariMakan, riwayat, pengaturan }
 
 class MapoDrawer extends StatelessWidget {
   final String userName;
@@ -68,7 +68,6 @@ class MapoDrawer extends StatelessWidget {
               label: 'Riwayat makan',
               onTap: () => onNavigate(MapoDrawerItem.riwayat),
             ),
-            const _DrawerTile(icon: HugeIcons.strokeRoundedFavourite, label: 'Favorit'),
             const _DrawerTile(icon: HugeIcons.strokeRoundedSettings01, label: 'Pengaturan'),
           ],
         ),

@@ -49,7 +49,7 @@ void main() {
     expect(navigated, MapoDrawerItem.cariMakan);
   });
 
-  testWidgets('Favorit dan Pengaturan disabled dan berlabel segera hadir', (tester) async {
+  testWidgets('Pengaturan disabled dan berlabel segera hadir', (tester) async {
     MapoDrawerItem? navigated;
     await tester.pumpWidget(
       MaterialApp(
@@ -61,8 +61,22 @@ void main() {
     tester.state<ScaffoldState>(find.byType(Scaffold)).openDrawer();
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Favorit (segera hadir)'), findsOneWidget);
-    await tester.tap(find.textContaining('Favorit'));
+    expect(find.textContaining('Pengaturan (segera hadir)'), findsOneWidget);
+    await tester.tap(find.textContaining('Pengaturan'));
     expect(navigated, isNull);
+  });
+
+  testWidgets('Favorit tidak lagi ada di drawer', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          drawer: MapoDrawer(userName: 'Ammar', onNavigate: (_) {}),
+        ),
+      ),
+    );
+    tester.state<ScaffoldState>(find.byType(Scaffold)).openDrawer();
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Favorit'), findsNothing);
   });
 }

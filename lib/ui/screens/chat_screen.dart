@@ -75,7 +75,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         break;
       case MapoDrawerItem.riwayat:
         Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RiwayatScreen()));
-      case MapoDrawerItem.favorit:
       case MapoDrawerItem.pengaturan:
         break;
     }
