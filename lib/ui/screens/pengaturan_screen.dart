@@ -152,12 +152,22 @@ class _PengaturanScreenState extends ConsumerState<PengaturanScreen>
     await ref.read(locationServiceProvider).openSettings(status);
   }
 
+  /// `launchUrl` punya dua cara gagal, bukan satu. Selain mengembalikan `false`
+  /// ia juga *melempar* `PlatformException` kalau tidak ada activity yang bisa
+  /// menangani intent-nya (perangkat tanpa browser, atau `<queries>` di
+  /// AndroidManifest tidak mendaftarkan ACTION_VIEW + skema https di API 30+).
+  /// Tanpa `try`, kegagalan itu lolos jadi unhandled exception dan user tidak
+  /// melihat apa pun.
   Future<void> _handlePrivacyTap() async {
-    final opened = await launchUrl(
-      Uri.parse(_privacyPolicyUrl),
-      mode: LaunchMode.externalApplication,
-    );
-    if (!opened) _snack('Gagal membuka tautan');
+    try {
+      final opened = await launchUrl(
+        Uri.parse(_privacyPolicyUrl),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!opened) _snack('Gagal membuka tautan');
+    } catch (_) {
+      _snack('Gagal membuka tautan');
+    }
   }
 
   @override

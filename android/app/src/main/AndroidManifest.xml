@@ -43,5 +43,13 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- Dibutuhkan url_launcher untuk membuka tautan kebijakan privasi.
+             Sejak Android API 30 package visibility menyembunyikan app lain:
+             tanpa entri ini launchUrl() tidak menemukan satu pun browser dan
+             gagal, meski browsernya terpasang. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
     </queries>
 </manifest>
