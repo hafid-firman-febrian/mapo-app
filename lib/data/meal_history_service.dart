@@ -50,4 +50,31 @@ class MealHistoryService {
       'eaten_at': Timestamp.now(),
     });
   }
+
+  /// Firestore tidak punya "hapus koleksi", dan satu [WriteBatch] maksimal 500
+  /// operasi — jadi harus berulang sampai koleksinya habis. Bukan kehati-hatian
+  /// teoretis: user yang memakai Mapo setahun akan melewati 500 entri.
+  ///
+  /// Sengaja tidak menyentuh dokumen `users/{userId}` supaya preferensi
+  /// (budget & pantangan) bertahan.
+  Future<void> deleteMealHistory(String userId) async {
+    final col = _db
+        .collection('users')
+        .doc(userId)
+        .collection('meal_history');
+
+    while (true) {
+      final snap = await col.limit(500).get();
+      if (snap.docs.isEmpty) return;
+
+      final batch = _db.batch();
+      for (final doc in snap.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    }
+  }
+
+  Future<void> deleteUserDoc(String userId) =>
+      _db.collection('users').doc(userId).delete();
 }

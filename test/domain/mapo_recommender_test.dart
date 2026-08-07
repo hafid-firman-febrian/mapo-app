@@ -79,6 +79,14 @@ class FakeMealHistory implements MealHistoryService {
         )
         .toList();
   }
+
+  @override
+  Future<void> deleteMealHistory(String userId) async {
+    saved.clear();
+  }
+
+  @override
+  Future<void> deleteUserDoc(String userId) async {}
 }
 
 class FakeMapoChat implements MapoChat {
