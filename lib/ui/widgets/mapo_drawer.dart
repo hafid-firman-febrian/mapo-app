@@ -68,7 +68,11 @@ class MapoDrawer extends StatelessWidget {
               label: 'Riwayat makan',
               onTap: () => onNavigate(MapoDrawerItem.riwayat),
             ),
-            const _DrawerTile(icon: HugeIcons.strokeRoundedSettings01, label: 'Pengaturan'),
+            _DrawerTile(
+              icon: HugeIcons.strokeRoundedSettings01,
+              label: 'Pengaturan',
+              onTap: () => onNavigate(MapoDrawerItem.pengaturan),
+            ),
           ],
         ),
       ),

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_ai/firebase_ai.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../data/weather_service.dart';
 import '../data/meal_history_service.dart';
 import '../data/location_service.dart';
@@ -300,3 +301,10 @@ class AccountActions {
     await auth.deleteAccount();
   }
 }
+
+/// Versi app untuk halaman Pengaturan. Dibaca dari platform, bukan ditulis
+/// tangan — string versi yang di-hardcode akan basi diam-diam.
+final appVersionProvider = FutureProvider<String>((ref) async {
+  final info = await PackageInfo.fromPlatform();
+  return '${info.version} (${info.buildNumber})';
+});

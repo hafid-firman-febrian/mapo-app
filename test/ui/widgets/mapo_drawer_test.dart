@@ -49,23 +49,6 @@ void main() {
     expect(navigated, MapoDrawerItem.cariMakan);
   });
 
-  testWidgets('Pengaturan disabled dan berlabel segera hadir', (tester) async {
-    MapoDrawerItem? navigated;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          drawer: MapoDrawer(userName: 'Ammar', mealCount: 3, onNavigate: (i) => navigated = i),
-        ),
-      ),
-    );
-    tester.state<ScaffoldState>(find.byType(Scaffold)).openDrawer();
-    await tester.pumpAndSettle();
-
-    expect(find.textContaining('Pengaturan (segera hadir)'), findsOneWidget);
-    await tester.tap(find.textContaining('Pengaturan'));
-    expect(navigated, isNull);
-  });
-
   testWidgets('Favorit tidak lagi ada di drawer', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -78,5 +61,24 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Favorit'), findsNothing);
+  });
+
+  testWidgets('tap Pengaturan memanggil onNavigate dengan item yang benar', (
+    tester,
+  ) async {
+    MapoDrawerItem? navigated;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          drawer: MapoDrawer(userName: 'Ammar', onNavigate: (i) => navigated = i),
+        ),
+      ),
+    );
+    tester.state<ScaffoldState>(find.byType(Scaffold)).openDrawer();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Pengaturan'));
+
+    expect(navigated, MapoDrawerItem.pengaturan);
   });
 }

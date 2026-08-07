@@ -14,6 +14,7 @@ import '../widgets/mapo_header.dart';
 import '../widgets/pending_checklist.dart';
 import '../widgets/quick_reply_chip.dart';
 import '../widgets/recommendation_card.dart';
+import 'pengaturan_screen.dart';
 import 'profil_screen.dart';
 import 'riwayat_screen.dart';
 
@@ -76,7 +77,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       case MapoDrawerItem.riwayat:
         Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RiwayatScreen()));
       case MapoDrawerItem.pengaturan:
-        break;
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const PengaturanScreen()),
+        );
     }
   }
 
