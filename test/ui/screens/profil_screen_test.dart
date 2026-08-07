@@ -25,6 +25,19 @@ class FakeAuthService implements AuthService {
     signOutCalls++;
     if (signOutError != null) throw signOutError!;
   }
+
+  var reauthCalls = 0;
+  var deleteAccountCalls = 0;
+
+  @override
+  Future<void> reauthenticateWithGoogle() async {
+    reauthCalls++;
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    deleteAccountCalls++;
+  }
 }
 
 void main() {

@@ -88,4 +88,48 @@ class AuthService {
     await _auth.signOut();
     await _auth.signInAnonymously();
   }
+
+  /// Firebase menolak `user.delete()` dengan `requires-recent-login` kalau sesi
+  /// sudah basi. Dipanggil SEBELUM data apa pun dihapus, supaya kegagalan yang
+  /// paling mungkin terjadi di titik yang belum merusak apa-apa — kalau
+  /// urutannya dibalik, user bisa kehilangan riwayat sementara akunnya tetap
+  /// hidup.
+  Future<void> reauthenticateWithGoogle() async {
+    await _ensureInitialized();
+
+    final GoogleSignInAccount account;
+    try {
+      account = await _googleSignIn.authenticate();
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        throw GoogleSignInCancelledException();
+      }
+      rethrow;
+    }
+
+    final idToken = account.authentication.idToken;
+    if (idToken == null) {
+      throw StateError(
+        'Google tidak mengembalikan idToken — cek serverClientId di Firebase Console',
+      );
+    }
+
+    await _auth.currentUser?.reauthenticateWithCredential(
+      GoogleAuthProvider.credential(idToken: idToken),
+    );
+  }
+
+  /// Sesudah akun dihapus, app langsung membuat sesi anonim baru — invarian
+  /// yang sama dengan [signOut]: `currentUser` tidak pernah null selagi app
+  /// berjalan.
+  ///
+  /// Data Firestore harus sudah dihapus SEBELUM ini dipanggil. Begitu akunnya
+  /// hilang, `firestore.rules` tidak lagi mengizinkan menghapusnya dan
+  /// `meal_history` jadi yatim selamanya.
+  Future<void> deleteAccount() async {
+    await _ensureInitialized();
+    await _auth.currentUser?.delete();
+    await _googleSignIn.signOut();
+    await _auth.signInAnonymously();
+  }
 }
