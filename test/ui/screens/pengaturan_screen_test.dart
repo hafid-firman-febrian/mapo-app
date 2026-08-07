@@ -76,6 +76,54 @@ void main() {
       expect(tapped, 1);
     });
 
+    // Dua test berikut berpasangan dan wajib bersama: yang pertama sendirian
+    // akan tetap lolos meski `onTap` baris lokasi dibuat selalu `null`
+    // (tap tidak pernah memanggil apa pun, `tapped` tetap 0 baik ternyata
+    // salah maupun benar). Yang kedua mengunci sisi sebaliknya, membuktikan
+    // baris itu memang bisa di-tap saat statusnya bukan `granted`. Jangan
+    // hapus salah satunya karena mengira redundan.
+    testWidgets('izin sudah diberikan membuat baris lokasi tidak bisa di-tap', (
+      tester,
+    ) async {
+      var tapped = 0;
+      await tester.pumpWidget(
+        wrap(
+          PengaturanBody(
+            permission: LocationPermissionStatus.granted,
+            appVersion: '1.0.0 (1)',
+            onLocationTap: () => tapped++,
+            onDeleteHistoryTap: () {},
+            onDeleteAccountTap: () {},
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Izin lokasi'));
+      await tester.pump();
+
+      expect(tapped, 0);
+    });
+
+    testWidgets('izin ditolak membuat baris lokasi bisa di-tap', (tester) async {
+      var tapped = 0;
+      await tester.pumpWidget(
+        wrap(
+          PengaturanBody(
+            permission: LocationPermissionStatus.denied,
+            appVersion: '1.0.0 (1)',
+            onLocationTap: () => tapped++,
+            onDeleteHistoryTap: () {},
+            onDeleteAccountTap: () {},
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Izin lokasi'));
+      await tester.pump();
+
+      expect(tapped, 1);
+    });
+
     testWidgets('tiga judul seksi selalu tampil', (tester) async {
       await tester.pumpWidget(wrap(body()));
 
