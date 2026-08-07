@@ -123,6 +123,36 @@ void main() {
       expect(contrast(AppColors.ink, AppColors.brand), greaterThanOrEqualTo(3.0));
     });
 
+    test('onCard: teks tombol lolos 4.5:1 di atas isiannya, di semua tone', () {
+      for (final tone in CategoryTone.values) {
+        final style = AppButtonStyles.onCard(tone);
+        final fg = style.foregroundColor!.resolve(<WidgetState>{})!;
+        final bg = style.backgroundColor!.resolve(<WidgetState>{})!;
+        expect(
+          contrast(fg, bg),
+          greaterThanOrEqualTo(4.5),
+          reason: 'kartu ${tone.name}: teks tombol tidak terbaca di atas isiannya',
+        );
+      }
+    });
+
+    test('onCard: isian tombol tidak pernah sewarna kartunya', () {
+      for (final tone in CategoryTone.values) {
+        final bg = AppButtonStyles.onCard(tone).backgroundColor!.resolve(<WidgetState>{})!;
+        expect(
+          bg,
+          isNot(tone.base),
+          reason: 'kartu ${tone.name}: tombol menyatu dengan kartu, terlihat mati',
+        );
+      }
+    });
+
+    test('tombol brand di kartu amber memang tak terlihat — sebab onCard ada', () {
+      // CategoryTone.amber.base == AppColors.brand, jadi tombol default
+      // menyatu total dengan kartu kategori manis/cemilan.
+      expect(contrast(AppColors.brand, CategoryTone.amber.base), lessThan(3.0));
+    });
+
     test('putih di atas brand/blue memang gagal — dokumentasi kenapa ink dipakai', () {
       expect(contrast(Colors.white, AppColors.brand), lessThan(4.5));
       expect(contrast(Colors.white, AppColors.blue), lessThan(4.5));

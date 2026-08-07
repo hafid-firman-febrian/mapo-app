@@ -38,18 +38,41 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
   }
 
   Future<void> _handleSignOut() async {
-    setState(() => _busy = true);
-    try {
-      await ref.read(authServiceProvider).signOut();
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal keluar, coba lagi ya')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.paper,
+        title: Text('Konfirmasi'),
+        content: Text('Apakah kamu yakin ingin keluar?'),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              setState(() => _busy = true);
+              try {
+                await ref.read(authServiceProvider).signOut();
+              } catch (_) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Gagal keluar, coba lagi ya')),
+                  );
+                }
+              } finally {
+                if (mounted) setState(() => _busy = false);
+              }
+            },
+            child: Text('Keluar'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -194,8 +217,12 @@ class ProfilBody extends StatelessWidget {
           )
         else
           Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
+            alignment: Alignment.center,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.red,
+                foregroundColor: Colors.white,
+              ),
               onPressed: busy ? null : onSignOutTap,
               child: const Text('Keluar'),
             ),

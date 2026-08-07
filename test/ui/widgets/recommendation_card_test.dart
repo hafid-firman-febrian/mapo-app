@@ -24,6 +24,16 @@ const _rec = Recommendation(
   tags: ['hangat'],
 );
 
+Recommendation _recOf(String category) => Recommendation(
+      name: _rec.name,
+      reason: _rec.reason,
+      category: category,
+      priceEstimate: _rec.priceEstimate,
+      spiceLevel: _rec.spiceLevel,
+      prepTime: _rec.prepTime,
+      tags: _rec.tags,
+    );
+
 void main() {
   testWidgets('hero menampilkan nama, alasan, dan tombol Makan ini', (tester) async {
     await tester.pumpWidget(
@@ -242,16 +252,31 @@ void main() {
       );
     });
 
-    testWidgets('tombol Makan ini pakai foreground ink, bukan putih', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(body: RecommendationCard(recommendation: _rec)),
-        ),
-      );
+    testWidgets('tombol Makan ini memakai warna lawan dari tone kartunya', (tester) async {
+      // Kategori amber (manis/cemilan) adalah kasus yang bikin aturan ini ada:
+      // `CategoryTone.amber.base` == `AppColors.brand`, jadi tombol berwarna
+      // brand menyatu dengan kartunya dan terlihat seperti tombol mati.
+      for (final category in ['berkuah', 'sehat', 'pedas', 'cemilan']) {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: RecommendationCard(recommendation: _recOf(category)),
+            ),
+          ),
+        );
 
-      final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
-      expect(button.style?.foregroundColor?.resolve(<WidgetState>{}), AppColors.ink);
-      expect(button.style?.backgroundColor?.resolve(<WidgetState>{}), AppColors.brand);
+        final tone = categoryTone(category);
+        final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+        expect(
+          button.style?.backgroundColor?.resolve(<WidgetState>{}),
+          tone.cardButton.fill,
+          reason: 'tombol di kartu "$category" tidak memakai warna pasangannya',
+        );
+        expect(
+          button.style?.foregroundColor?.resolve(<WidgetState>{}),
+          tone.cardButton.text,
+        );
+      }
     });
   });
 }
