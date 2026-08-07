@@ -125,7 +125,19 @@ class _PengaturanScreenState extends ConsumerState<PengaturanScreen>
       await ref
           .read(accountActionsProvider)
           .deleteAccount(isAnonymous: isAnonymous);
-      if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
+      if (mounted) {
+        // Messenger diambil ke variabel lokal SEBELUM pop. `popUntil` melepas
+        // route ini, jadi `ScaffoldMessenger.of(context)` sesudahnya memakai
+        // context yang sudah di-deactivate. Messenger-nya sendiri milik
+        // MaterialApp — ia hidup lebih lama dari route yang dilepas, dan
+        // Scaffold layar awal yang muncul kembali langsung mengambil alih
+        // SnackBar yang sedang antre.
+        final messenger = ScaffoldMessenger.of(context);
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Akun kamu udah dihapus')),
+        );
+      }
     } on GoogleSignInCancelledException {
       // User menutup picker — batal total, belum ada yang terhapus.
     } catch (_) {
