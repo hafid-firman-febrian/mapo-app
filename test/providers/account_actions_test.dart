@@ -11,8 +11,9 @@ import 'package:mapo_app/providers/mapo_providers.dart';
 class RecordingAuth implements AuthService {
   final List<String> log;
   final Object? reauthError;
+  final Object? deleteAccountError;
 
-  RecordingAuth(this.log, {this.reauthError});
+  RecordingAuth(this.log, {this.reauthError, this.deleteAccountError});
 
   @override
   Future<void> reauthenticateWithGoogle() async {
@@ -21,7 +22,10 @@ class RecordingAuth implements AuthService {
   }
 
   @override
-  Future<void> deleteAccount() async => log.add('deleteAccount');
+  Future<void> deleteAccount() async {
+    log.add('deleteAccount');
+    if (deleteAccountError != null) throw deleteAccountError!;
+  }
 
   @override
   Future<void> linkOrSignInWithGoogle() async => log.add('link');
@@ -32,12 +36,20 @@ class RecordingAuth implements AuthService {
 
 class RecordingMealHistory implements MealHistoryService {
   final List<String> log;
+  final Object? deleteHistoryError;
 
-  RecordingMealHistory(this.log);
+  /// Dihitung terpisah dari [log] karena dipakai untuk membuktikan
+  /// `mealHistoryEntriesProvider` benar-benar dibangun ulang setelah
+  /// invalidasi, bukan untuk mengunci urutan pemanggilan.
+  var getMealHistoryCalls = 0;
+
+  RecordingMealHistory(this.log, {this.deleteHistoryError});
 
   @override
-  Future<void> deleteMealHistory(String userId) async =>
-      log.add('deleteMealHistory');
+  Future<void> deleteMealHistory(String userId) async {
+    log.add('deleteMealHistory');
+    if (deleteHistoryError != null) throw deleteHistoryError!;
+  }
 
   @override
   Future<void> deleteUserDoc(String userId) async => log.add('deleteUserDoc');
@@ -50,7 +62,10 @@ class RecordingMealHistory implements MealHistoryService {
   Future<List<MealHistoryEntry>> getMealHistory(
     String userId, {
     int limit = 20,
-  }) async => const [];
+  }) async {
+    getMealHistoryCalls++;
+    return const [];
+  }
 
   @override
   Future<UserPrefs> getPreferences(String userId) async => const UserPrefs();
@@ -66,15 +81,25 @@ void main() {
   ProviderContainer makeContainer({
     required List<String> log,
     Object? reauthError,
+    Object? deleteAccountError,
+    Object? deleteHistoryError,
+    MealHistoryService? history,
     String? userId = 'u1',
   }) {
     return ProviderContainer(
       overrides: [
         currentUserIdProvider.overrideWithValue(userId),
         authServiceProvider.overrideWithValue(
-          RecordingAuth(log, reauthError: reauthError),
+          RecordingAuth(
+            log,
+            reauthError: reauthError,
+            deleteAccountError: deleteAccountError,
+          ),
         ),
-        mealHistoryProvider.overrideWithValue(RecordingMealHistory(log)),
+        mealHistoryProvider.overrideWithValue(
+          history ??
+              RecordingMealHistory(log, deleteHistoryError: deleteHistoryError),
+        ),
       ],
     );
   }
@@ -124,14 +149,50 @@ void main() {
     expect(log, ['reauth']);
   });
 
-  test('deleteAccount: tanpa userId tidak melakukan apa-apa', () async {
+  test('deleteAccount: penghapusan data yang gagal tidak menghapus akun', () async {
+    final log = <String>[];
+    final container = makeContainer(
+      log: log,
+      deleteHistoryError: Exception('koneksi putus'),
+    );
+    addTearDown(container.dispose);
+
+    await expectLater(
+      container.read(accountActionsProvider).deleteAccount(isAnonymous: false),
+      throwsA(isA<Exception>()),
+    );
+
+    // Berhenti tepat setelah percobaan hapus riwayat: `deleteUserDoc` dan
+    // `deleteAccount` tidak boleh ikut jalan. Menghapus akun di sini akan
+    // membuat sisa `meal_history` yatim selamanya — `firestore.rules` tidak
+    // lagi mengizinkan menyentuhnya dan proyek ini tidak punya Cloud Functions.
+    expect(log, ['reauth', 'deleteMealHistory']);
+  });
+
+  test('deleteAccount: tanpa userId melempar StateError', () async {
     final log = <String>[];
     final container = makeContainer(log: log, userId: null);
     addTearDown(container.dispose);
 
-    await container
-        .read(accountActionsProvider)
-        .deleteAccount(isAnonymous: false);
+    // Gagal-diam di sini terlihat persis seperti sukses dari sisi layar: dialog
+    // konfirmasi ditutup, layar di-pop, dan user yakin akunnya sudah hilang.
+    await expectLater(
+      container.read(accountActionsProvider).deleteAccount(isAnonymous: false),
+      throwsA(isA<StateError>()),
+    );
+
+    expect(log, isEmpty);
+  });
+
+  test('deleteMealHistory: tanpa userId melempar StateError', () async {
+    final log = <String>[];
+    final container = makeContainer(log: log, userId: null);
+    addTearDown(container.dispose);
+
+    await expectLater(
+      container.read(accountActionsProvider).deleteMealHistory(),
+      throwsA(isA<StateError>()),
+    );
 
     expect(log, isEmpty);
   });
@@ -144,5 +205,56 @@ void main() {
     await container.read(accountActionsProvider).deleteMealHistory();
 
     expect(log, ['deleteMealHistory']);
+  });
+
+  /// Dua test di bawah mengunci Temuan 2: cache Riverpod tidak boleh
+  /// ditinggalkan menampilkan data yang sudah tidak ada di Firestore hanya
+  /// karena penghapusannya gagal di tengah jalan.
+  test('deleteAccount yang gagal tetap menyegarkan riwayat di cache', () async {
+    final log = <String>[];
+    final history = RecordingMealHistory(log);
+    final container = makeContainer(
+      log: log,
+      history: history,
+      deleteAccountError: Exception('koneksi putus'),
+    );
+    addTearDown(container.dispose);
+
+    // Listener aktif meniru drawer/layar Riwayat yang sudah menonton sejak
+    // sebelum penghapusan — persis keadaan yang membuat Riverpod tidak pernah
+    // menganggap cache-nya basi dengan sendirinya.
+    container.listen(mealHistoryEntriesProvider, (_, _) {});
+    await container.read(mealHistoryEntriesProvider.future);
+    expect(history.getMealHistoryCalls, 1);
+
+    await expectLater(
+      container.read(accountActionsProvider).deleteAccount(isAnonymous: true),
+      throwsA(isA<Exception>()),
+    );
+    await container.read(mealHistoryEntriesProvider.future);
+
+    expect(history.getMealHistoryCalls, 2);
+  });
+
+  test('deleteMealHistory yang gagal tetap menyegarkan riwayat di cache', () async {
+    final log = <String>[];
+    final history = RecordingMealHistory(
+      log,
+      deleteHistoryError: Exception('koneksi putus'),
+    );
+    final container = makeContainer(log: log, history: history);
+    addTearDown(container.dispose);
+
+    container.listen(mealHistoryEntriesProvider, (_, _) {});
+    await container.read(mealHistoryEntriesProvider.future);
+    expect(history.getMealHistoryCalls, 1);
+
+    await expectLater(
+      container.read(accountActionsProvider).deleteMealHistory(),
+      throwsA(isA<Exception>()),
+    );
+    await container.read(mealHistoryEntriesProvider.future);
+
+    expect(history.getMealHistoryCalls, 2);
   });
 }

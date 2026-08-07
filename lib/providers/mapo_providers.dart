@@ -267,16 +267,32 @@ class AccountActions {
   /// tetap berkata "kemarin kamu makan soto" sesudah riwayatnya dihapus.
   Future<void> deleteMealHistory() async {
     final userId = _ref.read(currentUserIdProvider);
-    if (userId == null) return;
+    // Fail-fast, bukan `return` yang diam — sama alasannya dengan StateError di
+    // `AuthService.reauthenticateWithGoogle`/`deleteAccount`. `return` di sini
+    // membuat layar menampilkan SnackBar "Riwayat makan dihapus" padahal tidak
+    // ada satu pun dokumen yang tersentuh: klaim sukses yang salah.
+    if (userId == null) {
+      throw StateError(
+        'Tidak ada sesi untuk menghapus riwayat — currentUser seharusnya tidak pernah null',
+      );
+    }
 
-    await _ref.read(mealHistoryProvider).deleteMealHistory(userId);
-
-    _ref.invalidate(mealHistoryEntriesProvider);
-    // Keduanya eksplisit: ChatNotifier.build() cuma watch currentUserIdProvider
-    // dan mengambil recommenderProvider lewat ref.read, jadi menginvalidasi
-    // mapoChatProvider saja tidak mengosongkan turn yang tampil di layar.
-    _ref.invalidate(mapoChatProvider);
-    _ref.invalidate(chatProvider);
+    // `finally`, bukan `catch`: UID tidak berubah di method ini, jadi tidak ada
+    // yang menyegarkan cache dengan sendirinya — invalidasi dibutuhkan di kedua
+    // jalur. Kegagalan di tengah tetap mungkin menghapus sebagian entri
+    // (deleteMealHistory berjalan per-batch 500), jadi cache yang ditinggalkan
+    // di jalur gagal pun sudah pasti basi.
+    try {
+      await _ref.read(mealHistoryProvider).deleteMealHistory(userId);
+    } finally {
+      _ref.invalidate(mealHistoryEntriesProvider);
+      // Keduanya eksplisit: ChatNotifier.build() cuma watch
+      // currentUserIdProvider dan mengambil recommenderProvider lewat ref.read,
+      // jadi menginvalidasi mapoChatProvider saja tidak mengosongkan turn yang
+      // tampil di layar.
+      _ref.invalidate(mapoChatProvider);
+      _ref.invalidate(chatProvider);
+    }
   }
 
   /// Urutannya tidak boleh dibalik. `firestore.rules` cuma mengizinkan tulisan
@@ -284,21 +300,53 @@ class AccountActions {
   /// `meal_history` yatim selamanya, dan tanpa Cloud Functions tidak ada cara
   /// membersihkannya.
   ///
-  /// Tidak perlu invalidasi manual seperti [deleteMealHistory]: UID berubah,
-  /// jadi `chatProvider`, `mapoChatProvider`, `mealHistoryEntriesProvider`, dan
-  /// `prefsProvider` semuanya tersegarkan sendiri.
+  /// Di jalur sukses tidak perlu invalidasi manual seperti [deleteMealHistory]:
+  /// UID berubah, jadi `chatProvider`, `mapoChatProvider`,
+  /// `mealHistoryEntriesProvider`, dan `prefsProvider` semuanya tersegarkan
+  /// sendiri lewat `currentUserIdProvider`.
+  ///
+  /// Di jalur gagal itu tidak berlaku. Kalau `auth.deleteAccount()` melempar
+  /// sesudah data Firestore terhapus, UID tetap sama dan tidak satu pun provider
+  /// diinvalidasi: drawer masih menghitung 20 kali makan, layar Riwayat masih
+  /// merender entri yang sudah tidak ada, dan `ChatSession` masih membawa blok
+  /// konteks lama. Lebih buruk lagi, `savePreferences` sesudahnya akan membuat
+  /// ulang `users/{uid}` berisi data separuh.
   Future<void> deleteAccount({required bool isAnonymous}) async {
     final userId = _ref.read(currentUserIdProvider);
-    if (userId == null) return;
+    // Fail-fast, bukan `return` yang diam. `signOut()` yang gagal tepat sebelum
+    // `signInAnonymously()` meninggalkan currentUser == null selagi akun Google
+    // dan seluruh datanya masih utuh — `return` di titik itu membuat layar
+    // menutup diri seolah akun sudah terhapus permanen padahal tidak ada yang
+    // tersentuh.
+    if (userId == null) {
+      throw StateError(
+        'Tidak ada akun untuk dihapus — currentUser seharusnya tidak pernah null',
+      );
+    }
 
-    final auth = _ref.read(authServiceProvider);
-    if (!isAnonymous) await auth.reauthenticateWithGoogle();
+    // `catch` + `rethrow`, bukan `finally`: di jalur sukses `signInAnonymously()`
+    // sudah mengganti `_auth.currentUser`, tapi `currentUserIdProvider` baru
+    // ikut berubah setelah stream `userChanges()` emit. Menginvalidasi di
+    // `finally` berarti `mealHistoryEntriesProvider` bisa dibangun ulang selagi
+    // UID yang di-cache masih milik akun yang baru saja dihapus — satu putaran
+    // pembacaan Firestore yang dijamin ditolak `firestore.rules`. Jalur sukses
+    // memang tidak butuh apa-apa; hanya jalur gagal yang butuh.
+    try {
+      final auth = _ref.read(authServiceProvider);
+      if (!isAnonymous) await auth.reauthenticateWithGoogle();
 
-    final history = _ref.read(mealHistoryProvider);
-    await history.deleteMealHistory(userId);
-    await history.deleteUserDoc(userId);
+      final history = _ref.read(mealHistoryProvider);
+      await history.deleteMealHistory(userId);
+      await history.deleteUserDoc(userId);
 
-    await auth.deleteAccount();
+      await auth.deleteAccount();
+    } catch (_) {
+      _ref.invalidate(mealHistoryEntriesProvider);
+      _ref.invalidate(prefsProvider);
+      _ref.invalidate(mapoChatProvider);
+      _ref.invalidate(chatProvider);
+      rethrow;
+    }
   }
 }
 
