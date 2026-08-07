@@ -26,6 +26,13 @@ final mealHistoryProvider = Provider(
 
 final locationServiceProvider = Provider((ref) => LocationService());
 
+/// Dibaca halaman Pengaturan. Disegarkan lewat `ref.invalidate` saat app
+/// kembali dari setelan sistem — tanpa itu, barisnya tetap menulis "Ditolak"
+/// sesudah user baru saja mengizinkan, dan user mengira gagal.
+final locationPermissionProvider = FutureProvider<LocationPermissionStatus>(
+  (ref) => ref.watch(locationServiceProvider).permissionStatus(),
+);
+
 /// `null` = lokasi tidak tersedia (izin ditolak / GPS mati / timeout).
 /// Ini keadaan normal, bukan error — cuaca tinggal jadi unknown.
 final coordsProvider = FutureProvider<Coords?>((ref) async {
