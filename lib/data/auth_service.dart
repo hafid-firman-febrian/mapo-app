@@ -114,7 +114,19 @@ class AuthService {
       );
     }
 
-    await _auth.currentUser?.reauthenticateWithCredential(
+    // Fail-fast, bukan `currentUser?.` yang diam. App menegakkan invarian
+    // "currentUser tidak pernah null selagi berjalan"; kalau invarian itu
+    // dilanggar, re-autentikasi yang dilewati diam-diam akan membuat pemanggil
+    // mengira sesi sudah segar padahal belum. Konsisten dengan StateError di
+    // atas untuk idToken.
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw StateError(
+        'Tidak ada sesi untuk di-reautentikasi — currentUser seharusnya tidak pernah null',
+      );
+    }
+
+    await user.reauthenticateWithCredential(
       GoogleAuthProvider.credential(idToken: idToken),
     );
   }
@@ -128,7 +140,19 @@ class AuthService {
   /// `meal_history` jadi yatim selamanya.
   Future<void> deleteAccount() async {
     await _ensureInitialized();
-    await _auth.currentUser?.delete();
+
+    // Fail-fast, bukan `currentUser?.delete()` yang diam. Kalau delete
+    // dilewati diam-diam, method ini tetap sign out + signInAnonymously dan
+    // kembali seolah sukses — pemanggil mengira akun sudah terhapus padahal
+    // masih hidup.
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw StateError(
+        'Tidak ada akun untuk dihapus — currentUser seharusnya tidak pernah null',
+      );
+    }
+
+    await user.delete();
     await _googleSignIn.signOut();
     await _auth.signInAnonymously();
   }
