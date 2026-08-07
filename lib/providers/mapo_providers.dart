@@ -235,3 +235,61 @@ class ChatNotifier extends Notifier<List<ChatTurn>> {
     ref.invalidate(prefsProvider);
   }
 }
+
+final accountActionsProvider = Provider<AccountActions>(
+  (ref) => AccountActions(ref),
+);
+
+/// Aksi akun sengaja dipisah dari [ChatNotifier]: menaruh `deleteAccount` di
+/// notifier percakapan jelas salah tempat, meski `savePrefs` sudah terlanjur
+/// ada di sana.
+///
+/// Bentuknya `Provider`, bukan `Notifier`, karena tidak ada state yang perlu
+/// diekspos — status `busy` ditahan di local state layar, mengikuti pola
+/// `_ProfilScreenState._busy`.
+class AccountActions {
+  final Ref _ref;
+
+  AccountActions(this._ref);
+
+  /// Menghapus riwayat tanpa menyentuh dokumen user — preferensi bertahan.
+  ///
+  /// [ChatSession] ikut direset karena blok konteks berisi riwayat makan
+  /// dikirim di turn pertama dan tersimpan di sisi model. Tanpa reset, Mapo
+  /// tetap berkata "kemarin kamu makan soto" sesudah riwayatnya dihapus.
+  Future<void> deleteMealHistory() async {
+    final userId = _ref.read(currentUserIdProvider);
+    if (userId == null) return;
+
+    await _ref.read(mealHistoryProvider).deleteMealHistory(userId);
+
+    _ref.invalidate(mealHistoryEntriesProvider);
+    // Keduanya eksplisit: ChatNotifier.build() cuma watch currentUserIdProvider
+    // dan mengambil recommenderProvider lewat ref.read, jadi menginvalidasi
+    // mapoChatProvider saja tidak mengosongkan turn yang tampil di layar.
+    _ref.invalidate(mapoChatProvider);
+    _ref.invalidate(chatProvider);
+  }
+
+  /// Urutannya tidak boleh dibalik. `firestore.rules` cuma mengizinkan tulisan
+  /// selagi `request.auth.uid == userId` — menghapus akun lebih dulu membuat
+  /// `meal_history` yatim selamanya, dan tanpa Cloud Functions tidak ada cara
+  /// membersihkannya.
+  ///
+  /// Tidak perlu invalidasi manual seperti [deleteMealHistory]: UID berubah,
+  /// jadi `chatProvider`, `mapoChatProvider`, `mealHistoryEntriesProvider`, dan
+  /// `prefsProvider` semuanya tersegarkan sendiri.
+  Future<void> deleteAccount({required bool isAnonymous}) async {
+    final userId = _ref.read(currentUserIdProvider);
+    if (userId == null) return;
+
+    final auth = _ref.read(authServiceProvider);
+    if (!isAnonymous) await auth.reauthenticateWithGoogle();
+
+    final history = _ref.read(mealHistoryProvider);
+    await history.deleteMealHistory(userId);
+    await history.deleteUserDoc(userId);
+
+    await auth.deleteAccount();
+  }
+}
