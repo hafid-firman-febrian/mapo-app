@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../data/location_service.dart';
 import '../../models/chat_turn.dart';
 import '../../models/user_prefs.dart';
 import '../../themes/app_colors.dart';
 import '../screens/chat_screen.dart';
+import '../screens/pengaturan_screen.dart';
 import '../screens/profil_screen.dart';
 import '../screens/riwayat_screen.dart';
 import '../widgets/mapo_drawer.dart';
@@ -46,6 +48,19 @@ class ScreensGallery extends StatelessWidget {
             onGoogleSignInTap: () {},
             onSignOutTap: () {},
             onEditPrefs: () {},
+          ),
+        ),
+      ),
+      _GalleryEntry(
+        'Pengaturan',
+        () => Scaffold(
+          appBar: const MapoHeader(title: 'Pengaturan'),
+          body: PengaturanBody(
+            permission: LocationPermissionStatus.denied,
+            appVersion: '1.0.0 (1)',
+            onLocationTap: () {},
+            onDeleteHistoryTap: () {},
+            onDeleteAccountTap: () {},
           ),
         ),
       ),

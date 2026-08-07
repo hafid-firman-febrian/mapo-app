@@ -15,6 +15,12 @@ void main() {
     expect(find.text('Riwayat (terisi)'), findsOneWidget);
     expect(find.text('Riwayat (kosong)'), findsOneWidget);
     expect(find.text('Profil (anonim)'), findsOneWidget);
+    expect(find.text('Pengaturan'), findsOneWidget);
+
+    // 'Menu (drawer)' ada di baris terakhir daftar — dengan entri 'Pengaturan'
+    // di atasnya, baris ini jatuh di luar viewport 544px milik test harness,
+    // jadi perlu discroll dulu supaya kelihatan sebelum di-assert.
+    await tester.scrollUntilVisible(find.text('Menu (drawer)'), 200);
     expect(find.text('Menu (drawer)'), findsOneWidget);
 
     await tester.tap(find.text('Single'));
