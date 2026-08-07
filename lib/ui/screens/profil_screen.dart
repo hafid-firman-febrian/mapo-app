@@ -61,7 +61,12 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
       ),
     );
 
-    if (ok != true) return;
+    // `await showDialog` di atas adalah jeda async tak terbatas — user bisa
+    // berlama-lama di depan dialog, dan layar ini bisa saja sudah di-dispose
+    // (mis. dinavigasi keluar dari luar) sebelum dialog itu ditutup. Cek
+    // `mounted` di sini bukan basa-basi: tanpanya `setState` di bawah bisa
+    // dipanggil pada State yang sudah tidak mounted.
+    if (ok != true || !mounted) return;
 
     setState(() => _busy = true);
     try {

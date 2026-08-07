@@ -423,5 +423,69 @@ void main() {
       expect(fake.signOutCalls, 0);
       expect(find.byType(AlertDialog), findsNothing);
     });
+
+    testWidgets(
+      'ProfilScreen di-dispose selagi dialog Keluar masih terbuka tidak memanggil signOut atau melempar error',
+      (tester) async {
+        final fake = FakeAuthService();
+        late BuildContext rootContext;
+        final profilRoute = MaterialPageRoute<void>(
+          builder: (_) => const ProfilScreen(),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              prefsProvider.overrideWith((ref) async => const UserPrefs()),
+              currentUserDisplayProvider.overrideWithValue(
+                (displayName: 'Ammar', isAnonymous: false, email: null),
+              ),
+              authServiceProvider.overrideWithValue(fake),
+            ],
+            child: MaterialApp(
+              home: Builder(
+                builder: (context) {
+                  rootContext = context;
+                  return const Scaffold(body: SizedBox());
+                },
+              ),
+            ),
+          ),
+        );
+
+        // ProfilScreen didorong sebagai route terpisah di Navigator yang sama
+        // dengan yang dipakai showDialog (default useRootNavigator: true),
+        // supaya route-nya bisa dicabut dari luar tanpa ikut menutup dialog
+        // yang didorong di atasnya — mensimulasikan "dinavigasi keluar dari
+        // luar selagi dialog konfirmasi masih terbuka".
+        Navigator.of(rootContext).push(profilRoute);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Keluar'));
+        await tester.pumpAndSettle();
+        expect(find.byType(AlertDialog), findsOneWidget);
+
+        // Cabut route ProfilScreen sementara dialognya tetap ada di atas —
+        // ini men-dispose State ProfilScreen (mounted jadi false) tanpa
+        // menyentuh dialog yang sedang menunggu keputusan user.
+        Navigator.of(rootContext).removeRoute(profilRoute);
+        await tester.pump();
+        expect(find.byType(AlertDialog), findsOneWidget);
+
+        // Baru sekarang user menekan "Keluar" di dalam dialog — meresolusi
+        // `await showDialog` di _handleSignOut() setelah State-nya sudah
+        // tidak mounted.
+        await tester.tap(
+          find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.text('Keluar'),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(fake.signOutCalls, 0);
+        expect(tester.takeException(), isNull);
+      },
+    );
   });
 }
